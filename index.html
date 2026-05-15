@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Window & Door Hardware Catalog</title>
+  <style>
+    :root {
+      --ink: #172026;
+      --muted: #66737a;
+      --line: #dbe2df;
+      --paper: #f6f7f3;
+      --panel: #ffffff;
+      --soft: #eef2ef;
+      --dark: #273238;
+      --red: #b5282f;
+      --teal: #0c6f72;
+      --gold: #bd8a30;
+      --shadow: 0 18px 50px rgba(23, 32, 38, .12);
+      font-family: Arial, "Segoe UI", Helvetica, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      letter-spacing: 0;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    img { display: block; max-width: 100%; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-height: 70px;
+      padding: 0 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      background: rgba(246, 247, 243, .94);
+      border-bottom: 1px solid rgba(219, 226, 223, .95);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 250px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--red);
+      border-radius: 5px;
+      font-size: 14px;
+      letter-spacing: .08em;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: #405057;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .nav a {
+      padding: 25px 0 23px;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav a:hover {
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-toggle {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .lang-btn {
+      height: 30px;
+      min-width: 54px;
+      padding: 0 10px;
+      color: #4d5a61;
+      background: transparent;
+      border: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .lang-btn.active {
+      color: white;
+      background: var(--red);
+    }
+
+    .hero {
+      padding: 28px 34px 0;
+    }
+
+    .hero-panel {
+      width: min(1380px, 100%);
+      min-height: 300px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 430px;
+      overflow: hidden;
+      color: white;
+      background: var(--dark);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      align-self: end;
+      padding: 44px 48px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 18px;
+      color: rgba(255, 255, 255, .74);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 44px;
+      height: 2px;
+      background: var(--red);
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 0;
+      font-size: clamp(36px, 5vw, 62px);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .hero-copy p:last-child {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: rgba(255, 255, 255, .76);
+      line-height: 1.78;
+    }
+
+    .hero-image {
+      min-height: 300px;
+      background:
+        linear-gradient(90deg, rgba(39, 50, 56, .58), rgba(39, 50, 56, 0)),
+        url("https://commons.wikimedia.org/wiki/Special:FilePath/Fenstergriff%20Tensolock%20F%2004.jpg?width=900");
+      background-size: cover;
+      background-position: center;
+    }
+
+    .layout {
+      width: min(1380px, calc(100% - 68px));
+      margin: 28px auto 72px;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .sidebar,
+    .toolbar,
+    .product-card,
+    .category-overview {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 88px;
+      overflow: hidden;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-title h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .count-pill {
+      min-width: 28px;
+      height: 24px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      background: var(--red);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .category-menu {
+      display: grid;
+      gap: 4px;
+      padding: 12px;
+    }
+
+    .category-btn {
+      width: 100%;
+      min-height: 46px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 0 11px 0 13px;
+      color: #39464d;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      text-align: left;
+    }
+
+    .category-btn:hover { background: var(--soft); }
+    .category-btn.active {
+      color: white;
+      background: var(--dark);
+      border-color: var(--dark);
+    }
+
+    .category-btn span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .category-btn em {
+      color: var(--muted);
+      font-style: normal;
+      font-size: 12px;
+    }
+
+    .category-btn.active em {
+      color: rgba(255, 255, 255, .74);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .toolbar {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      background: #f4f6f4;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .search::before {
+      content: "";
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      border: 2px solid #718087;
+      border-radius: 50%;
+      box-shadow: 7px 7px 0 -5px #718087;
+      transform: translateY(-1px);
+    }
+
+    .search input {
+      width: 100%;
+      min-width: 0;
+      color: var(--ink);
+      background: transparent;
+      border: 0;
+      outline: 0;
+    }
+
+    .segmented {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .mode-btn {
+      height: 34px;
+      padding: 0 13px;
+      color: #4c5a61;
+      background: transparent;
+      border: 0;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .mode-btn.active {
+      color: white;
+      background: var(--red);
+      font-weight: 700;
+    }
+
+    .select {
+      height: 44px;
+      padding: 0 34px 0 12px;
+      color: #3d4a51;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .category-overview {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .overview-image {
+      height: 170px;
+      background: #eef2ef;
+      overflow: hidden;
+    }
+
+    .overview-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .overview-copy {
+      padding: 22px 0;
+    }
+
+    .overview-copy h2 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.15;
+    }
+
+    .overview-copy p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.68;
+    }
+
+    .visible-count {
+      margin-right: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .product-card {
+      min-height: 328px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(181, 40, 47, .38);
+      box-shadow: var(--shadow);
+    }
+
+    .product-image {
+      height: 145px;
+      background: #eef2ef;
+      overflow: hidden;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-body {
+      padding: 16px;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .sku {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .tag {
+      max-width: 130px;
+      padding: 4px 8px;
+      overflow: hidden;
+      color: white;
+      background: var(--teal);
+      border-radius: 999px;
+      font-size: 12px;
+      line-height: 1.1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .product-body h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.28;
+    }
+
+    .product-body p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.62;
+      font-size: 13px;
+    }
+
+    .specs {
+      display: grid;
+      gap: 7px;
+      margin-top: auto;
+      padding-top: 13px;
+      border-top: 1px solid var(--line);
+      color: #445159;
+      font-size: 12px;
+    }
+
+    .specs span {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .specs b {
+      color: #69777e;
+      font-weight: 600;
+    }
+
+    .specs em {
+      color: #253137;
+      font-style: normal;
+      text-align: right;
+    }
+
+    .footer {
+      padding: 30px 34px;
+      color: rgba(255, 255, 255, .66);
+      background: #101719;
+      font-size: 13px;
+    }
+
+    .footer-inner {
+      width: min(1380px, 100%);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    @media (max-width: 1120px) {
+      .nav { display: none; }
+      .hero-panel { grid-template-columns: 1fr; }
+      .hero-image { min-height: 190px; order: -1; }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .category-menu {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 14px;
+      }
+      .category-btn { min-width: 210px; }
+      .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 760px) {
+      .topbar { padding: 0 18px; }
+      .brand { min-width: 0; }
+      .brand small { display: none; }
+      .hero { padding: 18px 18px 0; }
+      .hero-copy { padding: 30px 24px; }
+      .layout {
+        width: calc(100% - 36px);
+        margin-top: 18px;
+      }
+      .toolbar,
+      .category-overview {
+        grid-template-columns: 1fr;
+      }
+      .overview-copy {
+        padding: 0 18px 18px;
+      }
+      .visible-count {
+        margin: 0 18px 18px;
+      }
+      .product-grid { grid-template-columns: 1fr; }
+      .footer-inner { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Hardware catalog home">
+      <span class="brand-mark">HW</span>
+      <span><span data-i18n="brandTitle">Hardware Catalog</span><small data-i18n="brandSub">Window & Door System Components</small></span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#categories" data-i18n="navCategories">Categories</a>
+      <a href="#products" data-i18n="navProducts">Products</a>
+    </nav>
+    <div class="header-actions">
+      <div class="lang-toggle" aria-label="Language selector">
+        <button class="lang-btn active" type="button" data-lang="en">English</button>
+        <button class="lang-btn" type="button" data-lang="zh">中文</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-panel">
+        <div class="hero-copy">
+          <p class="eyebrow" data-i18n="heroEyebrow">Product Center</p>
+          <h1 data-i18n="heroTitle">Window & Door Hardware</h1>
+          <p data-i18n="heroText">Explore product categories and opening system solutions for modern window and door projects.</p>
+        </div>
+        <div class="hero-image" aria-label="Window handle reference image"></div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <aside class="sidebar" id="categories">
+        <div class="panel-title">
+          <h2 data-i18n="sideTitle">Product Categories</h2>
+          <span class="count-pill" id="categoryTotal">7</span>
+        </div>
+        <div class="category-menu" id="categoryMenu"></div>
+      </aside>
+
+      <section class="content" id="products">
+        <div class="toolbar">
+          <label class="search">
+            <input id="searchInput" type="search" placeholder="Search product name, SKU, category..." data-i18n-placeholder="searchPlaceholder" />
+          </label>
+          <div class="segmented" aria-label="Application filter">
+            <button class="mode-btn active" type="button" data-app="all" data-i18n="appAll">All</button>
+            <button class="mode-btn" type="button" data-app="window" data-i18n="appWindow">Window</button>
+            <button class="mode-btn" type="button" data-app="door" data-i18n="appDoor">Door</button>
+          </div>
+          <select class="select" id="sortSelect" aria-label="Sort products">
+            <option value="default" data-i18n="sortDefault">Default order</option>
+            <option value="page" data-i18n="sortPage">By catalog page</option>
+            <option value="name" data-i18n="sortName">By name</option>
+          </select>
+        </div>
+
+        <div class="category-overview">
+          <div class="overview-image"><img id="categoryImage" alt=""></div>
+          <div class="overview-copy">
+            <h2 id="categoryTitle">Handles & Pulls</h2>
+            <p id="categoryIntro">Window handles, door handles, recessed handles and pull handles.</p>
+          </div>
+          <span class="visible-count" id="visibleCount">Showing 0 products</span>
+        </div>
+
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span data-i18n="footerLeft">Window & Door Hardware Catalog Demo</span>
+      <span data-i18n="footerRight">Classification based on product type and opening solutions.</span>
+    </div>
+  </footer>
+
+  <script src="catalog-data.js"></script>
+  <script>
+    const i18n = {
+      en: {
+        pageTitle: "Window & Door Hardware Catalog",
+        brandTitle: "Hardware Catalog",
+        brandSub: "Window & Door System Components",
+        navCategories: "Categories",
+        navProducts: "Products",
+        heroEyebrow: "Product Center",
+        heroTitle: "Window & Door Hardware",
+        heroText: "Explore product categories and opening system solutions for modern window and door projects.",
+        sideTitle: "Product Categories",
+        searchPlaceholder: "Search product name, SKU, category...",
+        appAll: "All",
+        appWindow: "Window",
+        appDoor: "Door",
+        sortDefault: "Default order",
+        sortPage: "By catalog page",
+        sortName: "By name",
+        page: "Catalog Page",
+        application: "Application",
+        type: "Type",
+        viewDetail: "View detail",
+        productCount: "products",
+        solutionCount: "solutions",
+        footerLeft: "Window & Door Hardware Catalog Demo",
+        footerRight: "Classification based on product type and opening solutions."
+      },
+      zh: {
+        pageTitle: "门窗五金产品目录",
+        brandTitle: "五金产品目录",
+        brandSub: "门窗系统五金组件",
+        navCategories: "分类",
+        navProducts: "产品",
+        heroEyebrow: "产品中心",
+        heroTitle: "门窗五金产品中心",
+        heroText: "浏览适用于现代门窗项目的产品分类与开启系统解决方案。",
+        sideTitle: "产品分类",
+        searchPlaceholder: "搜索产品名称、SKU、分类...",
+        appAll: "全部",
+        appWindow: "窗用",
+        appDoor: "门用",
+        sortDefault: "默认排序",
+        sortPage: "按目录页码",
+        sortName: "按名称",
+        page: "目录页码",
+        application: "应用",
+        type: "类型",
+        viewDetail: "查看详情",
+        productCount: "个产品",
+        solutionCount: "个方案",
+        footerLeft: "门窗五金产品目录 Demo",
+        footerRight: "分类基于产品类型和开启系统方案重新组织。"
+      }
+    };
+
+    const data = window.CATALOG_DATA;
+    const categories = data.categories;
+    const items = data.items;
+    const categoryMenu = document.querySelector("#categoryMenu");
+    const categoryTotal = document.querySelector("#categoryTotal");
+    const productGrid = document.querySelector("#productGrid");
+    const searchInput = document.querySelector("#searchInput");
+    const modeButtons = document.querySelectorAll(".mode-btn");
+    const langButtons = document.querySelectorAll(".lang-btn");
+    const sortSelect = document.querySelector("#sortSelect");
+    const categoryImage = document.querySelector("#categoryImage");
+    const categoryTitle = document.querySelector("#categoryTitle");
+    const categoryIntro = document.querySelector("#categoryIntro");
+    const visibleCount = document.querySelector("#visibleCount");
+
+    const params = new URLSearchParams(location.search);
+    let currentLang = params.get("lang") === "zh" ? "zh" : "en";
+    let activeCategory = params.get("category") || "handles";
+    let activeApp = "all";
+
+    function t(key) {
+      return i18n[currentLang][key] || i18n.en[key] || key;
+    }
+
+    function text(value) {
+      return value?.[currentLang] || value?.en || "";
+    }
+
+    function activeCategoryData() {
+      return categories.find((category) => category.id === activeCategory) || categories[0];
+    }
+
+    function categoryById(id) {
+      return categories.find((category) => category.id === id) || categories[0];
+    }
+
+    function categoryItems(categoryId) {
+      return items.filter((item) => item.category === categoryId);
+    }
+
+    function imageFor(item) {
+      return data.images[item.category] || data.images.handles;
+    }
+
+    function appLabel(app) {
+      if (currentLang === "zh") {
+        return app.includes("door") && app.includes("window") ? "窗 / 门" : app.includes("door") ? "门用" : app.includes("window") ? "窗用" : "系统";
+      }
+      return app.includes("door") && app.includes("window") ? "Window / Door" : app.includes("door") ? "Door" : app.includes("window") ? "Window" : "System";
+    }
+
+    function applyStaticLanguage() {
+      document.documentElement.lang = currentLang === "zh" ? "zh-CN" : "en";
+      document.title = t("pageTitle");
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = t(element.dataset.i18n);
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+        element.placeholder = t(element.dataset.i18nPlaceholder);
+      });
+      langButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === currentLang);
+      });
+    }
+
+    function renderCategories() {
+      categoryTotal.textContent = categories.length;
+      categoryMenu.innerHTML = categories.map((category) => {
+        const count = categoryItems(category.id).length;
+        return `
+          <button class="category-btn ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}">
+            <span>${text(category.name)}</span>
+            <em>${count}</em>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderOverview(listCount) {
+      const category = activeCategoryData();
+      categoryImage.src = data.images[category.id] || data.images.handles;
+      categoryImage.alt = text(category.name);
+      categoryTitle.textContent = text(category.name);
+      categoryIntro.textContent = text(category.intro);
+      const suffix = category.kind === "solution" ? t("solutionCount") : t("productCount");
+      visibleCount.textContent = currentLang === "zh" ? `显示 ${listCount} ${suffix}` : `Showing ${listCount} ${suffix}`;
+    }
+
+    function renderProducts() {
+      const keyword = searchInput.value.trim().toLowerCase();
+      let list = categoryItems(activeCategory).filter((item) => {
+        const appMatch = activeApp === "all" || item.app.split(" ").includes(activeApp);
+        const category = categoryById(item.category);
+        const haystack = `${item.sku} ${text(item.name)} ${item.name.en} ${text(item.description)} ${item.description.en} ${text(category.name)} ${category.name.en} ${item.page}`.toLowerCase();
+        return appMatch && (!keyword || haystack.includes(keyword));
+      });
+
+      if (sortSelect.value === "page") {
+        list = [...list].sort((a, b) => a.page - b.page);
+      }
+      if (sortSelect.value === "name") {
+        list = [...list].sort((a, b) => text(a.name).localeCompare(text(b.name)));
+      }
+
+      renderOverview(list.length);
+      productGrid.innerHTML = list.map((item) => {
+        const category = categoryById(item.category);
+        return `
+          <a class="product-card" href="product-detail.html?sku=${encodeURIComponent(item.sku)}&lang=${currentLang}">
+            <div class="product-image"><img src="${imageFor(item)}" alt="${text(item.name)}" loading="lazy"></div>
+            <div class="product-body">
+              <div class="meta"><span class="sku">${item.sku}</span><span class="tag">${text(category.name)}</span></div>
+              <h3>${text(item.name)}</h3>
+              <p>${text(item.description)}</p>
+              <div class="specs">
+                <span><b>${t("page")}</b><em>${item.page}</em></span>
+                <span><b>${t("application")}</b><em>${appLabel(item.app)}</em></span>
+                <span><b>${t("viewDetail")}</b><em>→</em></span>
+              </div>
+            </div>
+          </a>
+        `;
+      }).join("");
+    }
+
+    categoryMenu.addEventListener("click", (event) => {
+      const button = event.target.closest(".category-btn");
+      if (!button) return;
+      activeCategory = button.dataset.category;
+      const next = new URL(location.href);
+      next.searchParams.set("category", activeCategory);
+      next.searchParams.set("lang", currentLang);
+      history.replaceState(null, "", next.toString());
+      renderCategories();
+      renderProducts();
+    });
+
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeApp = button.dataset.app;
+        modeButtons.forEach((item) => item.classList.toggle("active", item === button));
+        renderProducts();
+      });
+    });
+
+    langButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        currentLang = button.dataset.lang;
+        const next = new URL(location.href);
+        next.searchParams.set("lang", currentLang);
+        next.searchParams.set("category", activeCategory);
+        history.replaceState(null, "", next.toString());
+        applyStaticLanguage();
+        renderCategories();
+        renderProducts();
+      });
+    });
+
+    searchInput.addEventListener("input", renderProducts);
+    sortSelect.addEventListener("change", renderProducts);
+
+    applyStaticLanguage();
+    renderCategories();
+    renderProducts();
+  </script>
+</body>
+</html>

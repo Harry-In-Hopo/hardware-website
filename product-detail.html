@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Detail</title>
+  <style>
+    :root {
+      --ink: #172026;
+      --muted: #66737a;
+      --line: #dbe2df;
+      --paper: #f6f7f3;
+      --panel: #ffffff;
+      --soft: #eef2ef;
+      --dark: #273238;
+      --red: #b5282f;
+      --teal: #0c6f72;
+      --shadow: 0 18px 50px rgba(23, 32, 38, .12);
+      font-family: Arial, "Segoe UI", Helvetica, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      letter-spacing: 0;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+    img { display: block; max-width: 100%; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      min-height: 70px;
+      padding: 0 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: rgba(246, 247, 243, .94);
+      border-bottom: 1px solid rgba(219, 226, 223, .95);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--red);
+      border-radius: 5px;
+      font-size: 14px;
+      letter-spacing: .08em;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-toggle {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .lang-btn {
+      height: 30px;
+      min-width: 54px;
+      padding: 0 10px;
+      color: #4d5a61;
+      background: transparent;
+      border: 0;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .lang-btn.active {
+      color: white;
+      background: var(--red);
+    }
+
+    .back-link {
+      height: 40px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      background: var(--dark);
+      border-radius: 5px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .wrap {
+      width: min(1240px, calc(100% - 68px));
+      margin: 28px auto 72px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .image-panel {
+      min-height: 460px;
+      background: #eef2ef;
+    }
+
+    .image-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: filter .22s ease;
+    }
+
+    .summary {
+      padding: 42px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    .summary-text {
+      margin: 18px 0 26px;
+      color: var(--muted);
+      line-height: 1.78;
+      font-size: 16px;
+    }
+
+    .chips,
+    .finish-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      min-height: 30px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      color: #39464d;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .finish-picker {
+      margin-top: 26px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
+    .finish-picker.hidden { display: none; }
+
+    .finish-label {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .finish-btn {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 13px 0 10px;
+      color: #3d4a51;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-weight: 800;
+    }
+
+    .finish-btn.active {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(181, 40, 47, .12);
+    }
+
+    .swatch {
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(23, 32, 38, .18);
+      border-radius: 50%;
+      background: var(--swatch);
+      flex: 0 0 auto;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .section-head {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .spec-box {
+      min-height: 112px;
+      padding: 20px;
+      background: white;
+    }
+
+    .spec-box b {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .spec-box span {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: white;
+      background: var(--dark);
+      font-size: 12px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+    td:nth-child(1) {
+      width: 28%;
+      font-weight: 800;
+    }
+    td:nth-child(3) {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      padding: 22px;
+      margin: 0;
+      list-style: none;
+    }
+
+    .list li {
+      padding-left: 22px;
+      position: relative;
+      color: #3d4a51;
+      line-height: 1.62;
+    }
+
+    .list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .72em;
+      width: 8px;
+      height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+    }
+
+    .note {
+      padding: 18px 22px;
+      color: var(--muted);
+      background: #f4f6f4;
+      border-top: 1px solid var(--line);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .download-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 300px;
+    }
+
+    .download-body {
+      flex: 1;
+      padding: 22px;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+    }
+
+    .download-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .download-meta span {
+      min-height: 28px;
+      padding: 0 9px;
+      display: inline-flex;
+      align-items: center;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+    }
+
+    .download-text {
+      margin: 0;
+      color: #3d4a51;
+      line-height: 1.68;
+    }
+
+    .download-action {
+      padding: 18px 22px;
+      border-top: 1px solid var(--line);
+      background: #f4f6f4;
+    }
+
+    .download-btn {
+      height: 42px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      background: var(--red);
+      border-radius: 5px;
+      font-weight: 800;
+    }
+
+    @media (max-width: 920px) {
+      .hero,
+      .two-col { grid-template-columns: 1fr; }
+      .image-panel { min-height: 300px; }
+      .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .topbar { padding: 0 18px; }
+      .brand small,
+      .back-link { display: none; }
+      .wrap {
+        width: calc(100% - 36px);
+        margin-top: 18px;
+      }
+      .summary { padding: 28px 22px; }
+      .spec-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" id="backBrand" href="index.html">
+      <span class="brand-mark">HW</span>
+      <span><span data-i18n="brandTitle">Hardware Catalog</span><small data-i18n="brandSub">Product Detail</small></span>
+    </a>
+    <div class="actions">
+      <div class="lang-toggle" aria-label="Language selector">
+        <button class="lang-btn active" type="button" data-lang="en">English</button>
+        <button class="lang-btn" type="button" data-lang="zh">中文</button>
+      </div>
+      <a class="back-link" id="backLink" href="index.html" data-i18n="back">Back to Products</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="image-panel"><img id="productImage" src="" alt=""></div>
+      <div class="summary">
+        <p class="eyebrow" id="categoryName">Category</p>
+        <h1 id="productName">Product Name</h1>
+        <p class="summary-text" id="productDescription">Product description.</p>
+        <div class="chips" id="chips"></div>
+        <div class="finish-picker hidden" id="finishPicker">
+          <p class="finish-label" data-i18n="finishLabel">Color / Finish</p>
+          <div class="finish-options" id="finishOptions"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 data-i18n="overviewTitle">Key Specifications</h2>
+        <p data-i18n="overviewText">Quick fields shown from the product table.</p>
+      </div>
+      <div class="spec-grid" id="specGrid"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2 data-i18n="paramTitle">Product Parameters</h2>
+        <p data-i18n="paramText">This table is ready for the detailed parameters from your spreadsheet.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="thParameter">Parameter</th>
+              <th data-i18n="thValue">Value</th>
+              <th data-i18n="thRemark">Remark</th>
+            </tr>
+          </thead>
+          <tbody id="parameterRows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section class="section download-card">
+        <div class="section-head">
+          <h2 data-i18n="tdsTitle">TDS</h2>
+          <p data-i18n="tdsSubtitle">Technical Data Sheet</p>
+        </div>
+        <div class="download-body">
+          <div class="download-meta">
+            <span data-i18n="fileTypePdf">PDF</span>
+            <span data-i18n="tdsMeta">Technical parameters</span>
+          </div>
+          <p class="download-text" data-i18n="tdsText">Download the technical data sheet with product dimensions, materials, finish options and key specifications.</p>
+        </div>
+        <div class="download-action">
+          <a class="download-btn" href="downloads/TDS-placeholder.pdf" download data-i18n="downloadTds">Download TDS</a>
+        </div>
+      </section>
+
+      <section class="section download-card">
+        <div class="section-head">
+          <h2 data-i18n="manualTitle">Installation Manual</h2>
+          <p data-i18n="manualSubtitle">Installation Instructions</p>
+        </div>
+        <div class="download-body">
+          <div class="download-meta">
+            <span data-i18n="fileTypePdf">PDF</span>
+            <span data-i18n="manualMeta">Installation guide</span>
+          </div>
+          <p class="download-text" data-i18n="manualText">Download the installation manual with mounting steps, fixing positions, adjustment notes and maintenance guidance.</p>
+        </div>
+        <div class="download-action">
+          <a class="download-btn" href="downloads/Installation-Manual-placeholder.pdf" download data-i18n="downloadManual">Download Manual</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="catalog-data.js"></script>
+  <script>
+    const i18n = {
+      en: {
+        pageTitle: "Product Detail",
+        brandTitle: "Hardware Catalog",
+        brandSub: "Product Detail",
+        back: "Back to Products",
+        finishLabel: "Color / Finish",
+        overviewTitle: "Key Specifications",
+        overviewText: "Quick fields shown from the product table.",
+        paramTitle: "Product Parameters",
+        paramText: "This table is ready for the detailed parameters from your spreadsheet.",
+        thParameter: "Parameter",
+        thValue: "Value",
+        thRemark: "Remark",
+        tdsTitle: "TDS",
+        tdsSubtitle: "Technical Data Sheet",
+        fileTypePdf: "PDF",
+        tdsMeta: "Technical parameters",
+        tdsText: "Download the technical data sheet with product dimensions, materials, finish options and key specifications.",
+        downloadTds: "Download TDS",
+        manualTitle: "Installation Manual",
+        manualSubtitle: "Installation Instructions",
+        manualMeta: "Installation guide",
+        manualText: "Download the installation manual with mounting steps, fixing positions, adjustment notes and maintenance guidance.",
+        downloadManual: "Download Manual",
+        sku: "SKU",
+        category: "Category",
+        application: "Application",
+        catalogPage: "Catalog Page",
+        productType: "Product Type",
+        material: "Material",
+        finish: "Finish",
+        package: "Package",
+        toBeConfirmed: "To be confirmed",
+        fromTable: "Fill from product table",
+        systemPackage: "System Package",
+        product: "Product",
+        window: "Window",
+        door: "Door",
+        sliding: "Sliding",
+        system: "System"
+      },
+      zh: {
+        pageTitle: "产品详情",
+        brandTitle: "五金产品目录",
+        brandSub: "产品详情",
+        back: "返回产品列表",
+        finishLabel: "颜色 / 表面处理",
+        overviewTitle: "关键规格",
+        overviewText: "这里展示来自产品表格的核心字段。",
+        paramTitle: "产品参数",
+        paramText: "这张表已预留给你后续表格里的详细产品参数。",
+        thParameter: "参数",
+        thValue: "数值",
+        thRemark: "备注",
+        tdsTitle: "TDS 技术参数表",
+        tdsSubtitle: "Technical Data Sheet",
+        fileTypePdf: "PDF",
+        tdsMeta: "技术参数",
+        tdsText: "下载技术参数表，查看产品尺寸、材质、表面颜色和关键规格。",
+        downloadTds: "下载 TDS",
+        manualTitle: "安装说明书",
+        manualSubtitle: "Installation Instructions",
+        manualMeta: "安装指导",
+        manualText: "下载安装说明书，查看安装步骤、固定位置、调试说明和维护建议。",
+        downloadManual: "下载安装说明书",
+        sku: "SKU",
+        category: "分类",
+        application: "应用",
+        catalogPage: "目录页码",
+        productType: "产品类型",
+        material: "材质",
+        finish: "表面颜色",
+        package: "包装",
+        toBeConfirmed: "待确认",
+        fromTable: "从产品表格填入",
+        systemPackage: "系统方案",
+        product: "产品",
+        window: "窗用",
+        door: "门用",
+        sliding: "推拉",
+        system: "系统"
+      }
+    };
+
+    const data = window.CATALOG_DATA;
+    const params = new URLSearchParams(location.search);
+    const sku = params.get("sku") || "HND-01";
+    let lang = params.get("lang") === "zh" ? "zh" : "en";
+    const item = data.items.find((entry) => entry.sku === sku) || data.items[0];
+    const category = data.categories.find((entry) => entry.id === item.category) || data.categories[0];
+    const finishes = [
+      { id: "white", label: { en: "White", zh: "白色" }, swatch: "#f4f3ec", filter: "none", value: { en: "White", zh: "白色" } },
+      { id: "black", label: { en: "Black", zh: "黑色" }, swatch: "#171a1d", filter: "grayscale(1) brightness(.36) contrast(1.35)", value: { en: "Black", zh: "黑色" } },
+      { id: "silver", label: { en: "Silver", zh: "银色" }, swatch: "linear-gradient(135deg, #f7f8f8, #9da7aa)", filter: "grayscale(1) brightness(.86) contrast(1.12)", value: { en: "Silver", zh: "银色" } },
+      { id: "bronze", label: { en: "Bronze", zh: "古铜色" }, swatch: "#8a5a31", filter: "sepia(.85) saturate(1.8) hue-rotate(340deg) brightness(.74) contrast(1.14)", value: { en: "Bronze", zh: "古铜色" } }
+    ];
+    let selectedFinish = finishes[0].id;
+
+    const productImage = document.querySelector("#productImage");
+    const productName = document.querySelector("#productName");
+    const productDescription = document.querySelector("#productDescription");
+    const categoryName = document.querySelector("#categoryName");
+    const chips = document.querySelector("#chips");
+    const finishPicker = document.querySelector("#finishPicker");
+    const finishOptions = document.querySelector("#finishOptions");
+    const specGrid = document.querySelector("#specGrid");
+    const parameterRows = document.querySelector("#parameterRows");
+    const backLink = document.querySelector("#backLink");
+    const backBrand = document.querySelector("#backBrand");
+    const langButtons = document.querySelectorAll(".lang-btn");
+
+    function t(key) {
+      return i18n[lang][key] || i18n.en[key] || key;
+    }
+
+    function text(value) {
+      return value?.[lang] || value?.en || "";
+    }
+
+    function imageFor() {
+      return data.images[item.category] || data.images.handles;
+    }
+
+    function isHandle() {
+      return item.category === "handles";
+    }
+
+    function isSolution() {
+      return category.kind === "solution";
+    }
+
+    function currentFinish() {
+      return finishes.find((finish) => finish.id === selectedFinish) || finishes[0];
+    }
+
+    function appLabel() {
+      if (item.app.includes("door") && item.app.includes("window")) return lang === "zh" ? "窗 / 门" : "Window / Door";
+      if (item.app.includes("door")) return t("door");
+      if (item.app.includes("window")) return t("window");
+      if (item.app.includes("sliding")) return t("sliding");
+      return t("system");
+    }
+
+    function updateBackLinks() {
+      const href = `index.html?category=${encodeURIComponent(item.category)}&lang=${lang}`;
+      backLink.href = href;
+      backBrand.href = href;
+    }
+
+    function renderFinishes() {
+      if (!isHandle()) {
+        finishPicker.classList.add("hidden");
+        productImage.style.filter = "none";
+        return;
+      }
+      finishPicker.classList.remove("hidden");
+      finishOptions.innerHTML = finishes.map((finish) => `
+        <button class="finish-btn ${finish.id === selectedFinish ? "active" : ""}" type="button" data-finish="${finish.id}">
+          <span class="swatch" style="--swatch: ${finish.swatch}"></span>
+          <span>${finish.label[lang]}</span>
+        </button>
+      `).join("");
+      productImage.style.filter = currentFinish().filter;
+    }
+
+    function renderSpecs() {
+      const rows = [
+        [t("sku"), item.sku],
+        [t("category"), text(category.name)],
+        [t("application"), appLabel()],
+        [t("catalogPage"), item.page]
+      ];
+      if (isHandle()) {
+        rows[2] = [t("finish"), currentFinish().value[lang]];
+      }
+      specGrid.innerHTML = rows.map((row) => `<div class="spec-box"><b>${row[0]}</b><span>${row[1]}</span></div>`).join("");
+    }
+
+    function renderParameters() {
+      const rows = [
+        [t("sku"), item.sku, t("fromTable")],
+        [t("productType"), text(item.name), isSolution() ? t("systemPackage") : t("product")],
+        [t("category"), text(category.name), text(category.intro)],
+        [t("application"), appLabel(), t("fromTable")],
+        [t("catalogPage"), item.page, t("fromTable")],
+        [t("material"), t("toBeConfirmed"), t("fromTable")],
+        [t("finish"), isHandle() ? currentFinish().value[lang] : t("toBeConfirmed"), t("fromTable")],
+        [t("package"), t("toBeConfirmed"), t("fromTable")]
+      ];
+      parameterRows.innerHTML = rows.map((row) => `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td></tr>`).join("");
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+      document.title = `${text(item.name)} - ${t("pageTitle")}`;
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = t(element.dataset.i18n);
+      });
+      langButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.lang === lang);
+      });
+      updateBackLinks();
+      productImage.src = imageFor();
+      productImage.alt = text(item.name);
+      productName.textContent = text(item.name);
+      productDescription.textContent = text(item.description);
+      categoryName.textContent = text(category.name);
+      chips.innerHTML = [item.sku, text(category.name), appLabel()].map((chip) => `<span class="chip">${chip}</span>`).join("");
+      renderFinishes();
+      renderSpecs();
+      renderParameters();
+    }
+
+    langButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        lang = button.dataset.lang;
+        const next = new URL(location.href);
+        next.searchParams.set("lang", lang);
+        history.replaceState(null, "", next.toString());
+        applyLanguage();
+      });
+    });
+
+    finishOptions.addEventListener("click", (event) => {
+      const button = event.target.closest(".finish-btn");
+      if (!button) return;
+      selectedFinish = button.dataset.finish;
+      renderFinishes();
+      renderSpecs();
+      renderParameters();
+    });
+
+    applyLanguage();
+  </script>
+</body>
+</html>
