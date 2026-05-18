@@ -335,8 +335,9 @@
     }
 
     .segmented {
-      height: 44px;
+      min-height: 44px;
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       padding: 4px;
       background: var(--soft);
@@ -619,11 +620,7 @@
           <label class="search">
             <input id="searchInput" type="search" placeholder="Search product name, SKU, category..." data-i18n-placeholder="searchPlaceholder" />
           </label>
-          <div class="segmented" aria-label="Application filter">
-            <button class="mode-btn active" type="button" data-app="all" data-i18n="appAll">All</button>
-            <button class="mode-btn" type="button" data-app="window" data-i18n="appWindow">Window</button>
-            <button class="mode-btn" type="button" data-app="door" data-i18n="appDoor">Door</button>
-          </div>
+          <div class="segmented" id="subtypeFilter" aria-label="Product subtype filter"></div>
           <select class="select" id="sortSelect" aria-label="Sort products">
             <option value="default" data-i18n="sortDefault">Default order</option>
             <option value="page" data-i18n="sortPage">By catalog page</option>
@@ -669,6 +666,13 @@
         appAll: "All",
         appWindow: "Window",
         appDoor: "Door",
+        filterSpindle: "Spindle handles",
+        filterFork: "Fork handles",
+        filterRecessed: "Recessed handles",
+        filterPull: "Pull handles",
+        filterDoorHandle: "Door handles",
+        filterMaLock: "MA locks",
+        filterAccessories: "Accessories",
         sortDefault: "Default order",
         sortPage: "By catalog page",
         sortName: "By name",
@@ -696,6 +700,13 @@
         appAll: "全部",
         appWindow: "窗用",
         appDoor: "门用",
+        filterSpindle: "方轴执手",
+        filterFork: "拨叉执手",
+        filterRecessed: "隐藏执手 / 扣手",
+        filterPull: "拉手",
+        filterDoorHandle: "门执手",
+        filterMaLock: "MA 锁",
+        filterAccessories: "附件包",
         sortDefault: "默认排序",
         sortPage: "按目录页码",
         sortName: "按名称",
@@ -718,7 +729,7 @@
     const categoryTotal = document.querySelector("#categoryTotal");
     const productGrid = document.querySelector("#productGrid");
     const searchInput = document.querySelector("#searchInput");
-    const modeButtons = document.querySelectorAll(".mode-btn");
+    const subtypeFilter = document.querySelector("#subtypeFilter");
     const langButtons = document.querySelectorAll(".lang-btn");
     const sortSelect = document.querySelector("#sortSelect");
     const categoryImage = document.querySelector("#categoryImage");
@@ -729,7 +740,24 @@
     const params = new URLSearchParams(location.search);
     let currentLang = params.get("lang") === "zh" ? "zh" : "en";
     let activeCategory = params.get("category") || "handles";
-    let activeApp = "all";
+    let activeFilter = params.get("filter") || "all";
+
+    const handleFilterRules = [
+      { id: "all", labelKey: "appAll", match: () => true },
+      { id: "spindle", labelKey: "filterSpindle", match: (item) => /spindle handle/i.test(text(item.subcategory)) || /方轴/.test(text(item.subcategory)) },
+      { id: "fork", labelKey: "filterFork", match: (item) => /fork handle/i.test(text(item.subcategory)) || /拨叉/.test(text(item.subcategory)) },
+      { id: "recessed", labelKey: "filterRecessed", match: (item) => (/recessed handle/i.test(text(item.subcategory)) || /隐藏|扣手/.test(text(item.subcategory))) && !/ma/i.test(text(item.subcategory)) },
+      { id: "pull", labelKey: "filterPull", match: (item) => /pull handle/i.test(text(item.subcategory)) || /拉手/.test(text(item.subcategory)) },
+      { id: "door-handle", labelKey: "filterDoorHandle", match: (item) => /door handle/i.test(text(item.subcategory)) || /门执手/.test(text(item.subcategory)) },
+      { id: "ma-lock", labelKey: "filterMaLock", match: (item) => /\bma\b/i.test(text(item.subcategory)) || /\bMA\b/i.test(text(item.name)) || /锁/.test(text(item.subcategory)) },
+      { id: "accessories", labelKey: "filterAccessories", match: (item) => /accessor|附件/.test(text(item.subcategory)) }
+    ];
+
+    const appFilterRules = [
+      { id: "all", labelKey: "appAll", match: () => true },
+      { id: "window", labelKey: "appWindow", match: (item) => (item.app || "").split(" ").includes("window") },
+      { id: "door", labelKey: "appDoor", match: (item) => (item.app || "").split(" ").includes("door") }
+    ];
 
     function t(key) {
       return i18n[currentLang][key] || i18n.en[key] || key;
@@ -763,6 +791,14 @@
 
     function activeCategoryData() {
       return categories.find((category) => category.id === activeCategory) || categories[0];
+    }
+
+    function activeFilterRules() {
+      return activeCategory === "handles" ? handleFilterRules : appFilterRules;
+    }
+
+    function activeFilterRule() {
+      return activeFilterRules().find((rule) => rule.id === activeFilter) || activeFilterRules()[0];
     }
 
     function categoryById(id) {
@@ -812,6 +848,23 @@
       }).join("");
     }
 
+    function renderSubtypeFilter() {
+      const categoryList = categoryItems(activeCategory);
+      const availableRules = activeFilterRules().filter((rule) => {
+        return rule.id === "all" || categoryList.some((item) => rule.match(item));
+      });
+
+      if (!availableRules.some((rule) => rule.id === activeFilter)) {
+        activeFilter = "all";
+      }
+
+      subtypeFilter.innerHTML = availableRules.map((rule) => `
+        <button class="mode-btn ${rule.id === activeFilter ? "active" : ""}" type="button" data-filter="${rule.id}">
+          ${escapeHtml(t(rule.labelKey))}
+        </button>
+      `).join("");
+    }
+
     function renderOverview(listCount) {
       const category = activeCategoryData();
       categoryImage.src = data.images[category.id] || data.images.handles;
@@ -824,11 +877,12 @@
 
     function renderProducts() {
       const keyword = searchInput.value.trim().toLowerCase();
+      const filterRule = activeFilterRule();
       let list = categoryItems(activeCategory).filter((item) => {
-        const appMatch = activeApp === "all" || (item.app || "").split(" ").includes(activeApp);
+        const filterMatch = filterRule.match(item);
         const category = categoryById(item.category);
         const haystack = `${item.sku} ${item.code || ""} ${text(item.name)} ${item.name?.en || ""} ${text(item.description)} ${item.description?.en || ""} ${text(item.subcategory)} ${text(item.params)} ${text(item.finish)} ${text(category.name)} ${category.name.en} ${item.page} ${item.sequence || ""}`.toLowerCase();
-        return appMatch && (!keyword || haystack.includes(keyword));
+        return filterMatch && (!keyword || haystack.includes(keyword));
       });
 
       if (sortSelect.value === "page") {
@@ -866,17 +920,29 @@
       const next = new URL(location.href);
       next.searchParams.set("category", activeCategory);
       next.searchParams.set("lang", currentLang);
+      next.searchParams.delete("filter");
       history.replaceState(null, "", next.toString());
+      activeFilter = "all";
       renderCategories();
+      renderSubtypeFilter();
       renderProducts();
     });
 
-    modeButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        activeApp = button.dataset.app;
-        modeButtons.forEach((item) => item.classList.toggle("active", item === button));
-        renderProducts();
-      });
+    subtypeFilter.addEventListener("click", (event) => {
+      const button = event.target.closest(".mode-btn");
+      if (!button) return;
+      activeFilter = button.dataset.filter;
+      const next = new URL(location.href);
+      next.searchParams.set("category", activeCategory);
+      next.searchParams.set("lang", currentLang);
+      if (activeFilter === "all") {
+        next.searchParams.delete("filter");
+      } else {
+        next.searchParams.set("filter", activeFilter);
+      }
+      history.replaceState(null, "", next.toString());
+      renderSubtypeFilter();
+      renderProducts();
     });
 
     langButtons.forEach((button) => {
@@ -885,9 +951,15 @@
         const next = new URL(location.href);
         next.searchParams.set("lang", currentLang);
         next.searchParams.set("category", activeCategory);
+        if (activeFilter === "all") {
+          next.searchParams.delete("filter");
+        } else {
+          next.searchParams.set("filter", activeFilter);
+        }
         history.replaceState(null, "", next.toString());
         applyStaticLanguage();
         renderCategories();
+        renderSubtypeFilter();
         renderProducts();
       });
     });
@@ -897,6 +969,7 @@
 
     applyStaticLanguage();
     renderCategories();
+    renderSubtypeFilter();
     renderProducts();
   </script>
 </body>
