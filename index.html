@@ -672,7 +672,6 @@
         filterPull: "Pull handles",
         filterDoorHandle: "Door handles",
         filterMaLock: "MA locks",
-        filterLuxuryPull: "Luxury pull handles",
         page: "Catalog Page",
         number: "No.",
         application: "Application",
@@ -704,7 +703,6 @@
         filterPull: "拉手",
         filterDoorHandle: "门执手",
         filterMaLock: "MA 锁",
-        filterLuxuryPull: "豪华大拉手",
         page: "目录页码",
         number: "序号",
         application: "应用",
@@ -743,10 +741,9 @@
       { id: "spindle", labelKey: "filterSpindle", match: (item) => /spindle handle/i.test(subtypeSource(item)) || /方轴/.test(subtypeSource(item)) },
       { id: "fork", labelKey: "filterFork", match: (item) => /fork handle/i.test(subtypeSource(item)) || /拨叉/.test(subtypeSource(item)) },
       { id: "recessed", labelKey: "filterRecessed", match: (item) => (/recessed handle/i.test(subtypeSource(item)) || /隐藏|扣手/.test(subtypeSource(item))) && !/\bma\b/i.test(subtypeSource(item)) },
-      { id: "pull", labelKey: "filterPull", match: (item) => (/pull handle/i.test(subtypeSource(item)) || /拉手/.test(subtypeSource(item))) && !/luxury|豪华/.test(subtypeSource(item)) },
+      { id: "pull", labelKey: "filterPull", match: (item) => /pull handle|luxury pull/i.test(subtypeSource(item)) || /拉手|豪华大拉手/.test(subtypeSource(item)) },
       { id: "door-handle", labelKey: "filterDoorHandle", match: (item) => /door handle/i.test(subtypeSource(item)) || /门执手/.test(subtypeSource(item)) },
-      { id: "ma-lock", labelKey: "filterMaLock", match: (item) => /\bma\b/i.test(subtypeSource(item)) || /锁/.test(subtypeSource(item)) },
-      { id: "luxury-pull", labelKey: "filterLuxuryPull", match: (item) => /luxury pull|豪华大拉手|附件/.test(subtypeSource(item)) }
+      { id: "ma-lock", labelKey: "filterMaLock", match: (item) => /\bma\b/i.test(subtypeSource(item)) || /锁/.test(subtypeSource(item)) }
     ];
 
     function t(key) {

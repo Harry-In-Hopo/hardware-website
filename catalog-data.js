@@ -6158,9 +6158,9 @@ window.CATALOG_DATA = {
         "zh": "产品编号：BHAB466.00.023 编号说明：豪华大拉手附件包、00—单面安装、023—镀镍 表面处理：镀镍 适用范围：推拉门大拉手安装使用 包装规格：30个/袋、240个/箱"
       },
       "subcategory": {
-        "en": "Luxury Pull Handle",
-        "zh": "豪华大拉手",
-        "raw": "豪华大拉手"
+        "en": "Pull Handle",
+        "zh": "拉手",
+        "raw": "拉手 Pull Handle"
       },
       "params": {
         "en": "Product Series: HOPO\nProduct Code: BHAB466.00.023\nCode Description: 00—Single-Side Installation, 023—Nickel-Plated\nSurface Treatment: Nickel-Plated\nApplication: Used with Large Pull Handle on Sliding Door",
@@ -6197,9 +6197,9 @@ window.CATALOG_DATA = {
         "zh": "产品编号：BHAB466.00.1T023 编号说明：豪华大拉手附件包、00—单面安装、1T——带槽、023—镀镍 表面处理：镀镍 适用范围：推拉门大拉手安装使用 包装规格：30个..."
       },
       "subcategory": {
-        "en": "Luxury Pull Handle",
-        "zh": "豪华大拉手",
-        "raw": "豪华大拉手"
+        "en": "Pull Handle",
+        "zh": "拉手",
+        "raw": "拉手 Pull Handle"
       },
       "params": {
         "en": "Product Series: HOPO\nProduct Code: BHAB466.00.1T023\nCode Description: 00—Single-Side Installation, 1T——with Groove, 023—Nickel-Plated\nSurface Treatment: Nickel-Plated\nApplication: Used with Large Pull Handle on Sliding Door",
@@ -6236,9 +6236,9 @@ window.CATALOG_DATA = {
         "zh": "产品编号：BHAB466.05.80C023 编号说明：豪华大拉手附件包、05—双面安装、80—80mm长、023—镀镍 表面处理：镀镍 适用范围：推拉门大拉手安装使用 包装规格：..."
       },
       "subcategory": {
-        "en": "Luxury Pull Handle",
-        "zh": "豪华大拉手",
-        "raw": "豪华大拉手"
+        "en": "Pull Handle",
+        "zh": "拉手",
+        "raw": "拉手 Pull Handle"
       },
       "params": {
         "en": "Product Series: HOPO\nProduct Code: BHAB466.05.XXC023\nCode Description: 05—Double-Side Installation, XX—Screw Size, 023—Nickel-Plated\nScrew Options: 80mm, 95mm\nSurface Treatment: Nickel-Plated\nApplication: Used with Large Pull Handle on Sliding Door",
