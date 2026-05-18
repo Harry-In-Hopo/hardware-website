@@ -335,9 +335,8 @@
     }
 
     .segmented {
-      min-height: 44px;
+      height: 44px;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       padding: 4px;
       background: var(--soft);
@@ -620,12 +619,12 @@
           <label class="search">
             <input id="searchInput" type="search" placeholder="Search product name, SKU, category..." data-i18n-placeholder="searchPlaceholder" />
           </label>
-          <div class="segmented" id="subtypeFilter" aria-label="Product subtype filter"></div>
-          <select class="select" id="sortSelect" aria-label="Sort products">
-            <option value="default" data-i18n="sortDefault">Default order</option>
-            <option value="page" data-i18n="sortPage">By catalog page</option>
-            <option value="name" data-i18n="sortName">By name</option>
-          </select>
+          <div class="segmented" aria-label="Application filter">
+            <button class="mode-btn active" type="button" data-app="all" data-i18n="appAll">All</button>
+            <button class="mode-btn" type="button" data-app="window" data-i18n="appWindow">Window</button>
+            <button class="mode-btn" type="button" data-app="door" data-i18n="appDoor">Door</button>
+          </div>
+          <select class="select" id="typeSelect" aria-label="Product type filter"></select>
         </div>
 
         <div class="category-overview">
@@ -666,6 +665,7 @@
         appAll: "All",
         appWindow: "Window",
         appDoor: "Door",
+        filterAllTypes: "All product types",
         filterSpindle: "Spindle handles",
         filterFork: "Fork handles",
         filterRecessed: "Recessed handles",
@@ -673,9 +673,6 @@
         filterDoorHandle: "Door handles",
         filterMaLock: "MA locks",
         filterAccessories: "Accessories",
-        sortDefault: "Default order",
-        sortPage: "By catalog page",
-        sortName: "By name",
         page: "Catalog Page",
         number: "No.",
         application: "Application",
@@ -700,6 +697,7 @@
         appAll: "全部",
         appWindow: "窗用",
         appDoor: "门用",
+        filterAllTypes: "全部产品类型",
         filterSpindle: "方轴执手",
         filterFork: "拨叉执手",
         filterRecessed: "隐藏执手 / 扣手",
@@ -707,9 +705,6 @@
         filterDoorHandle: "门执手",
         filterMaLock: "MA 锁",
         filterAccessories: "附件包",
-        sortDefault: "默认排序",
-        sortPage: "按目录页码",
-        sortName: "按名称",
         page: "目录页码",
         number: "序号",
         application: "应用",
@@ -729,9 +724,9 @@
     const categoryTotal = document.querySelector("#categoryTotal");
     const productGrid = document.querySelector("#productGrid");
     const searchInput = document.querySelector("#searchInput");
-    const subtypeFilter = document.querySelector("#subtypeFilter");
+    const modeButtons = document.querySelectorAll(".mode-btn");
     const langButtons = document.querySelectorAll(".lang-btn");
-    const sortSelect = document.querySelector("#sortSelect");
+    const typeSelect = document.querySelector("#typeSelect");
     const categoryImage = document.querySelector("#categoryImage");
     const categoryTitle = document.querySelector("#categoryTitle");
     const categoryIntro = document.querySelector("#categoryIntro");
@@ -740,23 +735,18 @@
     const params = new URLSearchParams(location.search);
     let currentLang = params.get("lang") === "zh" ? "zh" : "en";
     let activeCategory = params.get("category") || "handles";
-    let activeFilter = params.get("filter") || "all";
+    let activeApp = "all";
+    let activeSubtype = params.get("subtype") || "all";
 
-    const handleFilterRules = [
-      { id: "all", labelKey: "appAll", match: () => true },
-      { id: "spindle", labelKey: "filterSpindle", match: (item) => /spindle handle/i.test(text(item.subcategory)) || /方轴/.test(text(item.subcategory)) },
-      { id: "fork", labelKey: "filterFork", match: (item) => /fork handle/i.test(text(item.subcategory)) || /拨叉/.test(text(item.subcategory)) },
-      { id: "recessed", labelKey: "filterRecessed", match: (item) => (/recessed handle/i.test(text(item.subcategory)) || /隐藏|扣手/.test(text(item.subcategory))) && !/ma/i.test(text(item.subcategory)) },
-      { id: "pull", labelKey: "filterPull", match: (item) => /pull handle/i.test(text(item.subcategory)) || /拉手/.test(text(item.subcategory)) },
-      { id: "door-handle", labelKey: "filterDoorHandle", match: (item) => /door handle/i.test(text(item.subcategory)) || /门执手/.test(text(item.subcategory)) },
-      { id: "ma-lock", labelKey: "filterMaLock", match: (item) => /\bma\b/i.test(text(item.subcategory)) || /\bMA\b/i.test(text(item.name)) || /锁/.test(text(item.subcategory)) },
-      { id: "accessories", labelKey: "filterAccessories", match: (item) => /accessor|附件/.test(text(item.subcategory)) }
-    ];
-
-    const appFilterRules = [
-      { id: "all", labelKey: "appAll", match: () => true },
-      { id: "window", labelKey: "appWindow", match: (item) => (item.app || "").split(" ").includes("window") },
-      { id: "door", labelKey: "appDoor", match: (item) => (item.app || "").split(" ").includes("door") }
+    const handleTypeRules = [
+      { id: "all", labelKey: "filterAllTypes", match: () => true },
+      { id: "spindle", labelKey: "filterSpindle", match: (item) => /spindle handle/i.test(subtypeSource(item)) || /方轴/.test(subtypeSource(item)) },
+      { id: "fork", labelKey: "filterFork", match: (item) => /fork handle/i.test(subtypeSource(item)) || /拨叉/.test(subtypeSource(item)) },
+      { id: "recessed", labelKey: "filterRecessed", match: (item) => (/recessed handle/i.test(subtypeSource(item)) || /隐藏|扣手/.test(subtypeSource(item))) && !/\bma\b/i.test(subtypeSource(item)) },
+      { id: "pull", labelKey: "filterPull", match: (item) => /pull handle/i.test(subtypeSource(item)) || /拉手/.test(subtypeSource(item)) },
+      { id: "door-handle", labelKey: "filterDoorHandle", match: (item) => /door handle/i.test(subtypeSource(item)) || /门执手/.test(subtypeSource(item)) },
+      { id: "ma-lock", labelKey: "filterMaLock", match: (item) => /\bma\b/i.test(subtypeSource(item)) || /锁/.test(subtypeSource(item)) },
+      { id: "accessories", labelKey: "filterAccessories", match: (item) => /accessor|附件/.test(subtypeSource(item)) }
     ];
 
     function t(key) {
@@ -765,6 +755,14 @@
 
     function text(value) {
       return value?.[currentLang] || value?.en || value || "";
+    }
+
+    function subtypeSource(item) {
+      return [
+        item.subcategory?.en,
+        item.subcategory?.zh,
+        item.subcategory?.raw
+      ].filter(Boolean).join(" ");
     }
 
     function escapeHtml(value) {
@@ -793,12 +791,12 @@
       return categories.find((category) => category.id === activeCategory) || categories[0];
     }
 
-    function activeFilterRules() {
-      return activeCategory === "handles" ? handleFilterRules : appFilterRules;
+    function activeTypeRules() {
+      return activeCategory === "handles" ? handleTypeRules : [{ id: "all", labelKey: "filterAllTypes", match: () => true }];
     }
 
-    function activeFilterRule() {
-      return activeFilterRules().find((rule) => rule.id === activeFilter) || activeFilterRules()[0];
+    function activeTypeRule() {
+      return activeTypeRules().find((rule) => rule.id === activeSubtype) || activeTypeRules()[0];
     }
 
     function categoryById(id) {
@@ -848,21 +846,26 @@
       }).join("");
     }
 
-    function renderSubtypeFilter() {
+    function renderTypeSelect() {
       const categoryList = categoryItems(activeCategory);
-      const availableRules = activeFilterRules().filter((rule) => {
+      const availableRules = activeTypeRules().filter((rule) => {
         return rule.id === "all" || categoryList.some((item) => rule.match(item));
       });
 
-      if (!availableRules.some((rule) => rule.id === activeFilter)) {
-        activeFilter = "all";
+      if (!availableRules.some((rule) => rule.id === activeSubtype)) {
+        activeSubtype = "all";
       }
 
-      subtypeFilter.innerHTML = availableRules.map((rule) => `
-        <button class="mode-btn ${rule.id === activeFilter ? "active" : ""}" type="button" data-filter="${rule.id}">
-          ${escapeHtml(t(rule.labelKey))}
-        </button>
-      `).join("");
+      typeSelect.innerHTML = "";
+      availableRules.forEach((rule) => {
+        const option = document.createElement("option");
+        const count = rule.id === "all" ? categoryList.length : categoryList.filter((item) => rule.match(item)).length;
+        option.value = rule.id;
+        option.textContent = `${t(rule.labelKey)} (${count})`;
+        option.selected = rule.id === activeSubtype;
+        typeSelect.appendChild(option);
+      });
+      typeSelect.disabled = availableRules.length <= 1;
     }
 
     function renderOverview(listCount) {
@@ -877,20 +880,14 @@
 
     function renderProducts() {
       const keyword = searchInput.value.trim().toLowerCase();
-      const filterRule = activeFilterRule();
+      const typeRule = activeTypeRule();
       let list = categoryItems(activeCategory).filter((item) => {
-        const filterMatch = filterRule.match(item);
+        const appMatch = activeApp === "all" || (item.app || "").split(" ").includes(activeApp);
+        const typeMatch = typeRule.match(item);
         const category = categoryById(item.category);
         const haystack = `${item.sku} ${item.code || ""} ${text(item.name)} ${item.name?.en || ""} ${text(item.description)} ${item.description?.en || ""} ${text(item.subcategory)} ${text(item.params)} ${text(item.finish)} ${text(category.name)} ${category.name.en} ${item.page} ${item.sequence || ""}`.toLowerCase();
-        return filterMatch && (!keyword || haystack.includes(keyword));
+        return appMatch && typeMatch && (!keyword || haystack.includes(keyword));
       });
-
-      if (sortSelect.value === "page") {
-        list = [...list].sort((a, b) => (Number(indexValue(a)) || 0) - (Number(indexValue(b)) || 0));
-      }
-      if (sortSelect.value === "name") {
-        list = [...list].sort((a, b) => text(a.name).localeCompare(text(b.name)));
-      }
 
       renderOverview(list.length);
       productGrid.innerHTML = list.map((item) => {
@@ -920,29 +917,20 @@
       const next = new URL(location.href);
       next.searchParams.set("category", activeCategory);
       next.searchParams.set("lang", currentLang);
-      next.searchParams.delete("filter");
+      next.searchParams.delete("subtype");
       history.replaceState(null, "", next.toString());
-      activeFilter = "all";
+      activeSubtype = "all";
       renderCategories();
-      renderSubtypeFilter();
+      renderTypeSelect();
       renderProducts();
     });
 
-    subtypeFilter.addEventListener("click", (event) => {
-      const button = event.target.closest(".mode-btn");
-      if (!button) return;
-      activeFilter = button.dataset.filter;
-      const next = new URL(location.href);
-      next.searchParams.set("category", activeCategory);
-      next.searchParams.set("lang", currentLang);
-      if (activeFilter === "all") {
-        next.searchParams.delete("filter");
-      } else {
-        next.searchParams.set("filter", activeFilter);
-      }
-      history.replaceState(null, "", next.toString());
-      renderSubtypeFilter();
-      renderProducts();
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeApp = button.dataset.app;
+        modeButtons.forEach((item) => item.classList.toggle("active", item === button));
+        renderProducts();
+      });
     });
 
     langButtons.forEach((button) => {
@@ -951,25 +939,37 @@
         const next = new URL(location.href);
         next.searchParams.set("lang", currentLang);
         next.searchParams.set("category", activeCategory);
-        if (activeFilter === "all") {
-          next.searchParams.delete("filter");
+        if (activeSubtype === "all") {
+          next.searchParams.delete("subtype");
         } else {
-          next.searchParams.set("filter", activeFilter);
+          next.searchParams.set("subtype", activeSubtype);
         }
         history.replaceState(null, "", next.toString());
         applyStaticLanguage();
         renderCategories();
-        renderSubtypeFilter();
+        renderTypeSelect();
         renderProducts();
       });
     });
 
     searchInput.addEventListener("input", renderProducts);
-    sortSelect.addEventListener("change", renderProducts);
+    typeSelect.addEventListener("change", () => {
+      activeSubtype = typeSelect.value;
+      const next = new URL(location.href);
+      next.searchParams.set("category", activeCategory);
+      next.searchParams.set("lang", currentLang);
+      if (activeSubtype === "all") {
+        next.searchParams.delete("subtype");
+      } else {
+        next.searchParams.set("subtype", activeSubtype);
+      }
+      history.replaceState(null, "", next.toString());
+      renderProducts();
+    });
 
     applyStaticLanguage();
     renderCategories();
-    renderSubtypeFilter();
+    renderTypeSelect();
     renderProducts();
   </script>
 </body>
