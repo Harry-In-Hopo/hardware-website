@@ -323,6 +323,10 @@
       color: var(--muted);
       line-height: 1.55;
     }
+    td:nth-child(2),
+    td:nth-child(3) {
+      white-space: pre-line;
+    }
 
     .two-col {
       display: grid;
@@ -566,10 +570,17 @@
         category: "Category",
         application: "Application",
         catalogPage: "Catalog Page",
+        sequence: "No.",
+        productCode: "Product Code",
+        subcategory: "Subcategory",
         productType: "Product Type",
+        productParameters: "Product Parameters",
         material: "Material",
         finish: "Finish",
+        availableFinish: "Available Finish",
         package: "Package",
+        remarks: "Remarks",
+        internalId: "Internal ID",
         toBeConfirmed: "To be confirmed",
         fromTable: "Fill from product table",
         systemPackage: "System Package",
@@ -607,10 +618,17 @@
         category: "分类",
         application: "应用",
         catalogPage: "目录页码",
+        sequence: "序号",
+        productCode: "产品编号",
+        subcategory: "子分类",
         productType: "产品类型",
+        productParameters: "产品参数",
         material: "材质",
         finish: "表面颜色",
+        availableFinish: "可选颜色 / 表面处理",
         package: "包装",
+        remarks: "备注",
+        internalId: "内部ID",
         toBeConfirmed: "待确认",
         fromTable: "从产品表格填入",
         systemPackage: "系统方案",
@@ -626,7 +644,7 @@
     const params = new URLSearchParams(location.search);
     const sku = params.get("sku") || "HND-01";
     let lang = params.get("lang") === "zh" ? "zh" : "en";
-    const item = data.items.find((entry) => entry.sku === sku) || data.items[0];
+    const item = data.items.find((entry) => entry.sku === sku || entry.code === sku) || data.items[0];
     const category = data.categories.find((entry) => entry.id === item.category) || data.categories[0];
     const finishes = [
       { id: "white", label: { en: "White", zh: "白色" }, swatch: "#f4f3ec", filter: "none", value: { en: "White", zh: "白色" } },
@@ -654,7 +672,21 @@
     }
 
     function text(value) {
-      return value?.[lang] || value?.en || "";
+      return value?.[lang] || value?.en || value || "";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function displaySku(entry = item) {
+      return entry.code || entry.sku || "";
     }
 
     function imageFor() {
@@ -674,10 +706,11 @@
     }
 
     function appLabel() {
-      if (item.app.includes("door") && item.app.includes("window")) return lang === "zh" ? "窗 / 门" : "Window / Door";
-      if (item.app.includes("door")) return t("door");
-      if (item.app.includes("window")) return t("window");
-      if (item.app.includes("sliding")) return t("sliding");
+      const app = item.app || "";
+      if (app.includes("door") && app.includes("window")) return lang === "zh" ? "窗 / 门" : "Window / Door";
+      if (app.includes("door")) return t("door");
+      if (app.includes("window")) return t("window");
+      if (app.includes("sliding")) return t("sliding");
       return t("system");
     }
 
@@ -704,30 +737,44 @@
     }
 
     function renderSpecs() {
+      const typeValue = item.subcategory ? text(item.subcategory) : appLabel();
+      const finishValue = isHandle() ? currentFinish().value[lang] : item.page;
       const rows = [
-        [t("sku"), item.sku],
+        [t("sku"), displaySku()],
         [t("category"), text(category.name)],
-        [t("application"), appLabel()],
-        [t("catalogPage"), item.page]
+        [item.subcategory ? t("subcategory") : t("application"), typeValue],
+        [isHandle() ? t("finish") : t("catalogPage"), finishValue]
       ];
-      if (isHandle()) {
-        rows[2] = [t("finish"), currentFinish().value[lang]];
-      }
-      specGrid.innerHTML = rows.map((row) => `<div class="spec-box"><b>${row[0]}</b><span>${row[1]}</span></div>`).join("");
+      specGrid.innerHTML = rows.map((row) => `<div class="spec-box"><b>${escapeHtml(row[0])}</b><span>${escapeHtml(row[1])}</span></div>`).join("");
     }
 
     function renderParameters() {
       const rows = [
-        [t("sku"), item.sku, t("fromTable")],
-        [t("productType"), text(item.name), isSolution() ? t("systemPackage") : t("product")],
-        [t("category"), text(category.name), text(category.intro)],
-        [t("application"), appLabel(), t("fromTable")],
-        [t("catalogPage"), item.page, t("fromTable")],
-        [t("material"), t("toBeConfirmed"), t("fromTable")],
-        [t("finish"), isHandle() ? currentFinish().value[lang] : t("toBeConfirmed"), t("fromTable")],
-        [t("package"), t("toBeConfirmed"), t("fromTable")]
+        [t("productCode"), displaySku(), item.sku !== displaySku() ? `${t("internalId")}: ${item.sku}` : t("fromTable")],
+        [t("productType"), text(item.name), isSolution() ? t("systemPackage") : t("product")]
       ];
-      parameterRows.innerHTML = rows.map((row) => `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td></tr>`).join("");
+
+      if (item.subcategory) rows.push([t("subcategory"), text(item.subcategory), t("fromTable")]);
+      rows.push([t("category"), text(category.name), text(category.intro)]);
+      rows.push([t("application"), appLabel(), t("fromTable")]);
+      rows.push([item.sequence ? t("sequence") : t("catalogPage"), item.sequence || item.page || "", t("fromTable")]);
+
+      if (text(item.params)) {
+        rows.push([t("productParameters"), text(item.params), t("fromTable")]);
+      } else {
+        rows.push([t("material"), t("toBeConfirmed"), t("fromTable")]);
+      }
+
+      if (text(item.finish)) {
+        rows.push([t("availableFinish"), text(item.finish), t("fromTable")]);
+      } else {
+        rows.push([t("finish"), isHandle() ? currentFinish().value[lang] : t("toBeConfirmed"), t("fromTable")]);
+      }
+
+      if (text(item.remarks)) rows.push([t("remarks"), text(item.remarks), t("fromTable")]);
+      if (!text(item.params)) rows.push([t("package"), t("toBeConfirmed"), t("fromTable")]);
+
+      parameterRows.innerHTML = rows.map((row) => `<tr><td>${escapeHtml(row[0])}</td><td>${escapeHtml(row[1])}</td><td>${escapeHtml(row[2])}</td></tr>`).join("");
     }
 
     function applyLanguage() {
@@ -745,7 +792,7 @@
       productName.textContent = text(item.name);
       productDescription.textContent = text(item.description);
       categoryName.textContent = text(category.name);
-      chips.innerHTML = [item.sku, text(category.name), appLabel()].map((chip) => `<span class="chip">${chip}</span>`).join("");
+      chips.innerHTML = [displaySku(), text(category.name), item.subcategory ? text(item.subcategory) : appLabel()].map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`).join("");
       renderFinishes();
       renderSpecs();
       renderParameters();

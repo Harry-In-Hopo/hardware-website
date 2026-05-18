@@ -673,6 +673,7 @@
         sortPage: "By catalog page",
         sortName: "By name",
         page: "Catalog Page",
+        number: "No.",
         application: "Application",
         type: "Type",
         viewDetail: "View detail",
@@ -699,6 +700,7 @@
         sortPage: "按目录页码",
         sortName: "按名称",
         page: "目录页码",
+        number: "序号",
         application: "应用",
         type: "类型",
         viewDetail: "查看详情",
@@ -734,7 +736,29 @@
     }
 
     function text(value) {
-      return value?.[currentLang] || value?.en || "";
+      return value?.[currentLang] || value?.en || value || "";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function displaySku(item) {
+      return item.code || item.sku || "";
+    }
+
+    function indexLabel(item) {
+      return item.sequence ? t("number") : t("page");
+    }
+
+    function indexValue(item) {
+      return item.sequence || item.page || "";
     }
 
     function activeCategoryData() {
@@ -754,10 +778,11 @@
     }
 
     function appLabel(app) {
+      app = app || "";
       if (currentLang === "zh") {
-        return app.includes("door") && app.includes("window") ? "窗 / 门" : app.includes("door") ? "门用" : app.includes("window") ? "窗用" : "系统";
+        return app.includes("door") && app.includes("window") ? "窗 / 门" : app.includes("door") ? "门用" : app.includes("window") ? "窗用" : app.includes("sliding") ? "推拉" : "系统";
       }
-      return app.includes("door") && app.includes("window") ? "Window / Door" : app.includes("door") ? "Door" : app.includes("window") ? "Window" : "System";
+      return app.includes("door") && app.includes("window") ? "Window / Door" : app.includes("door") ? "Door" : app.includes("window") ? "Window" : app.includes("sliding") ? "Sliding" : "System";
     }
 
     function applyStaticLanguage() {
@@ -780,8 +805,8 @@
         const count = categoryItems(category.id).length;
         return `
           <button class="category-btn ${category.id === activeCategory ? "active" : ""}" type="button" data-category="${category.id}">
-            <span>${text(category.name)}</span>
-            <em>${count}</em>
+            <span>${escapeHtml(text(category.name))}</span>
+            <em>${escapeHtml(count)}</em>
           </button>
         `;
       }).join("");
@@ -800,14 +825,14 @@
     function renderProducts() {
       const keyword = searchInput.value.trim().toLowerCase();
       let list = categoryItems(activeCategory).filter((item) => {
-        const appMatch = activeApp === "all" || item.app.split(" ").includes(activeApp);
+        const appMatch = activeApp === "all" || (item.app || "").split(" ").includes(activeApp);
         const category = categoryById(item.category);
-        const haystack = `${item.sku} ${text(item.name)} ${item.name.en} ${text(item.description)} ${item.description.en} ${text(category.name)} ${category.name.en} ${item.page}`.toLowerCase();
+        const haystack = `${item.sku} ${item.code || ""} ${text(item.name)} ${item.name?.en || ""} ${text(item.description)} ${item.description?.en || ""} ${text(item.subcategory)} ${text(item.params)} ${text(item.finish)} ${text(category.name)} ${category.name.en} ${item.page} ${item.sequence || ""}`.toLowerCase();
         return appMatch && (!keyword || haystack.includes(keyword));
       });
 
       if (sortSelect.value === "page") {
-        list = [...list].sort((a, b) => a.page - b.page);
+        list = [...list].sort((a, b) => (Number(indexValue(a)) || 0) - (Number(indexValue(b)) || 0));
       }
       if (sortSelect.value === "name") {
         list = [...list].sort((a, b) => text(a.name).localeCompare(text(b.name)));
@@ -818,15 +843,15 @@
         const category = categoryById(item.category);
         return `
           <a class="product-card" href="product-detail.html?sku=${encodeURIComponent(item.sku)}&lang=${currentLang}">
-            <div class="product-image"><img src="${imageFor(item)}" alt="${text(item.name)}" loading="lazy"></div>
+            <div class="product-image"><img src="${escapeHtml(imageFor(item))}" alt="${escapeHtml(text(item.name))}" loading="lazy"></div>
             <div class="product-body">
-              <div class="meta"><span class="sku">${item.sku}</span><span class="tag">${text(category.name)}</span></div>
-              <h3>${text(item.name)}</h3>
-              <p>${text(item.description)}</p>
+              <div class="meta"><span class="sku">${escapeHtml(displaySku(item))}</span><span class="tag">${escapeHtml(text(category.name))}</span></div>
+              <h3>${escapeHtml(text(item.name))}</h3>
+              <p>${escapeHtml(text(item.description))}</p>
               <div class="specs">
-                <span><b>${t("page")}</b><em>${item.page}</em></span>
-                <span><b>${t("application")}</b><em>${appLabel(item.app)}</em></span>
-                <span><b>${t("viewDetail")}</b><em>→</em></span>
+                <span><b>${escapeHtml(indexLabel(item))}</b><em>${escapeHtml(indexValue(item))}</em></span>
+                <span><b>${escapeHtml(t("application"))}</b><em>${escapeHtml(appLabel(item.app))}</em></span>
+                <span><b>${escapeHtml(t("viewDetail"))}</b><em>→</em></span>
               </div>
             </div>
           </a>

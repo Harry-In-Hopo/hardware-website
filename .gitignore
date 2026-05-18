@@ -1,6 +1,8 @@
 *.docx
 ~$*
 generate-*.js
+generate-*.ps1
+handle-import.json
 node_modules/
 .DS_Store
 Thumbs.db
