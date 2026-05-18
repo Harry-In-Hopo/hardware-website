@@ -423,7 +423,7 @@ window.CATALOG_DATA = {
         "en": "Product Series: HOPO Product Code: PH904.00.XXL/R Code Description: 00—without Spindle, XX—Color, L/R—Left/Rig...",
         "zh": "有基座方轴执手 | 012—喷银、047—喷涂深古铜色、168—喷涂抑菌砂纹黑"
       },
-      "video": "assets/ph904-rotation-v3.mp4",
+      "video": "assets/ph904-rotation-v4.mp4",
       "subcategory": {
         "en": "Spindle Handle",
         "zh": "有基座方轴执手",
