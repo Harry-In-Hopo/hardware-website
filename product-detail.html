@@ -149,6 +149,11 @@
 
     .image-panel video {
       background: #eef2ef;
+      pointer-events: none;
+    }
+
+    .image-panel video::-webkit-media-controls {
+      display: none !important;
     }
 
     .summary {
@@ -470,7 +475,7 @@
     <section class="hero">
       <div class="image-panel">
         <img id="productImage" src="" alt="">
-        <video id="productVideo" class="hidden" muted autoplay loop playsinline controls></video>
+        <video id="productVideo" class="hidden" muted autoplay loop playsinline></video>
       </div>
       <div class="summary">
         <p class="eyebrow" id="categoryName">Category</p>
