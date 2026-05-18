@@ -110,6 +110,7 @@ window.CATALOG_DATA = {
         "en": "Product Series: HOPO Product Code: PH107.00.XXH5 Code Description: 00—without Spindle, XX—Color Spindle Option...",
         "zh": "有基座方轴执手 | 011—氧银"
       },
+      "video": "assets/ph107-demo.webm",
       "subcategory": {
         "en": "Spindle Handle",
         "zh": "有基座方轴执手",

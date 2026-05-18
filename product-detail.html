@@ -139,11 +139,16 @@
       background: #eef2ef;
     }
 
-    .image-panel img {
+    .image-panel img,
+    .image-panel video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       transition: filter .22s ease;
+    }
+
+    .image-panel video {
+      background: #eef2ef;
     }
 
     .summary {
@@ -203,6 +208,7 @@
     }
 
     .finish-picker.hidden { display: none; }
+    .hidden { display: none !important; }
 
     .finish-label {
       margin: 0 0 12px;
@@ -462,7 +468,10 @@
 
   <main class="wrap">
     <section class="hero">
-      <div class="image-panel"><img id="productImage" src="" alt=""></div>
+      <div class="image-panel">
+        <img id="productImage" src="" alt="">
+        <video id="productVideo" class="hidden" muted autoplay loop playsinline controls></video>
+      </div>
       <div class="summary">
         <p class="eyebrow" id="categoryName">Category</p>
         <h1 id="productName">Product Name</h1>
@@ -539,7 +548,7 @@
     </div>
   </main>
 
-  <script src="catalog-data.js?v=20260518-handle"></script>
+  <script src="catalog-data.js?v=20260518-ph107-video"></script>
   <script>
     const i18n = {
       en: {
@@ -655,6 +664,7 @@
     let selectedFinish = finishes[0].id;
 
     const productImage = document.querySelector("#productImage");
+    const productVideo = document.querySelector("#productVideo");
     const productName = document.querySelector("#productName");
     const productDescription = document.querySelector("#productDescription");
     const categoryName = document.querySelector("#categoryName");
@@ -693,6 +703,27 @@
       return data.images[item.category] || data.images.handles;
     }
 
+    function renderMedia() {
+      if (item.video) {
+        productImage.classList.add("hidden");
+        productVideo.classList.remove("hidden");
+        if (productVideo.getAttribute("src") !== item.video) {
+          productVideo.src = item.video;
+        }
+        productVideo.setAttribute("aria-label", text(item.name));
+        const playAttempt = productVideo.play();
+        if (playAttempt?.catch) playAttempt.catch(() => {});
+        return;
+      }
+
+      productVideo.pause();
+      productVideo.removeAttribute("src");
+      productVideo.classList.add("hidden");
+      productImage.classList.remove("hidden");
+      productImage.src = imageFor();
+      productImage.alt = text(item.name);
+    }
+
     function isHandle() {
       return item.category === "handles";
     }
@@ -724,6 +755,7 @@
       if (!isHandle()) {
         finishPicker.classList.add("hidden");
         productImage.style.filter = "none";
+        productVideo.style.filter = "none";
         return;
       }
       finishPicker.classList.remove("hidden");
@@ -734,6 +766,7 @@
         </button>
       `).join("");
       productImage.style.filter = currentFinish().filter;
+      productVideo.style.filter = currentFinish().filter;
     }
 
     function renderSpecs() {
@@ -787,8 +820,7 @@
         button.classList.toggle("active", button.dataset.lang === lang);
       });
       updateBackLinks();
-      productImage.src = imageFor();
-      productImage.alt = text(item.name);
+      renderMedia();
       productName.textContent = text(item.name);
       productDescription.textContent = text(item.description);
       categoryName.textContent = text(category.name);
