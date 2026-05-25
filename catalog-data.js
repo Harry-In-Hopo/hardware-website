@@ -6506,7 +6506,8 @@ window.CATALOG_DATA = {
         "en": "Product Code: CTT56.00.38RSO5\nModel File: catt56-20-38r.stp\n3D Preview: Manual rotation available on the detail page",
         "zh": "产品编号：CTT56.00.38RSO5\n模型文件：catt56-20-38r.stp\n三维预览：详情页支持手动旋转查看"
       },
-      "model3d": "assets/models/catt56-20-38r.stp"
+      "model3d": "assets/models/catt56-20-38r.stp",
+      "modelMesh": "assets/models/catt56-mesh.json"
     },
     {
       "sku": "ROL-01",

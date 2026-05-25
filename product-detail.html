@@ -953,7 +953,7 @@
     </div>
   </main>
 
-  <script src="catalog-data.js?v=20260525-catt56-model"></script>
+  <script src="catalog-data.js?v=20260525-catt56-mesh"></script>
   <script>
     const i18n = {
       en: {
@@ -1148,7 +1148,7 @@
     }
 
     function hasModel3d() {
-      return Boolean(item.model3d);
+      return Boolean(item.model3d || item.modelMesh);
     }
 
     function setMediaButtons() {
@@ -1194,6 +1194,53 @@
       if (channels.some((value) => !Number.isFinite(value))) return new THREE.Color(0x9da7aa);
       const max = Math.max(...channels);
       return new THREE.Color(...channels.map((value) => max > 1 ? value / 255 : value));
+    }
+
+    function normalizeMeshColor(color) {
+      if (!Array.isArray(color) || color.length < 3) return null;
+      const channels = color.slice(0, 3).map((value) => Number(value));
+      if (channels.some((value) => !Number.isFinite(value))) return null;
+      const max = Math.max(...channels);
+      return channels.map((value) => max > 1 ? value / 255 : value);
+    }
+
+    function meshDataFromOcctResult(result) {
+      return {
+        version: 1,
+        source: item.model3d || "",
+        meshes: result.meshes.map((mesh) => {
+          const positions = mesh.attributes?.position?.array;
+          if (!positions || positions.length < 9) return null;
+          return {
+            name: mesh.name || "",
+            color: normalizeMeshColor(mesh.color),
+            positions: Array.from(positions),
+            normals: mesh.attributes?.normal?.array ? Array.from(mesh.attributes.normal.array) : [],
+            indices: mesh.index?.array ? Array.from(mesh.index.array) : []
+          };
+        }).filter(Boolean)
+      };
+    }
+
+    function buildModelGroupFromMeshData(THREE, meshData) {
+      const group = new THREE.Group();
+      (meshData.meshes || []).forEach((mesh) => {
+        if (!mesh.positions || mesh.positions.length < 9) return;
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(mesh.positions, 3));
+        if (mesh.normals?.length) geometry.setAttribute("normal", new THREE.Float32BufferAttribute(mesh.normals, 3));
+        if (mesh.indices?.length) geometry.setIndex(mesh.indices);
+        geometry.computeBoundingBox();
+        if (!mesh.normals?.length) geometry.computeVertexNormals();
+        const material = new THREE.MeshStandardMaterial({
+          color: occtColorToThree(THREE, mesh.color),
+          metalness: 0.72,
+          roughness: 0.36,
+          side: THREE.DoubleSide
+        });
+        group.add(new THREE.Mesh(geometry, material));
+      });
+      return group;
     }
 
     function resizeModelViewer() {
@@ -1293,35 +1340,23 @@
         }
 
         resizeModelViewer();
-        const response = await withTimeout(fetch(item.model3d), 120000, "Model file request timed out");
-        if (!response.ok) throw new Error(`Model request failed: ${response.status}`);
-        const buffer = await withTimeout(response.arrayBuffer(), 120000, "Model file read timed out");
-        const occt = await withTimeout(initOcct(), 60000, "OCCT loader timed out");
-        const result = occt.ReadStepFile(new Uint8Array(buffer), stepParseParams());
-        if (!result?.success || !result.meshes?.length) throw new Error("No STEP mesh returned");
+        let meshData;
+        if (item.modelMesh) {
+          const meshResponse = await withTimeout(fetch(item.modelMesh), 120000, "Model mesh request timed out");
+          if (!meshResponse.ok) throw new Error(`Model mesh request failed: ${meshResponse.status}`);
+          meshData = await withTimeout(meshResponse.json(), 120000, "Model mesh read timed out");
+        } else {
+          const response = await withTimeout(fetch(item.model3d), 120000, "Model file request timed out");
+          if (!response.ok) throw new Error(`Model request failed: ${response.status}`);
+          const buffer = await withTimeout(response.arrayBuffer(), 120000, "Model file read timed out");
+          const occt = await withTimeout(initOcct(), 60000, "OCCT loader timed out");
+          const result = occt.ReadStepFile(new Uint8Array(buffer), stepParseParams());
+          if (!result?.success || !result.meshes?.length) throw new Error("No STEP mesh returned");
+          meshData = meshDataFromOcctResult(result);
+          window.modelViewerMeshData = meshData;
+        }
 
-        const group = new THREE.Group();
-        result.meshes.forEach((mesh) => {
-          const positions = mesh.attributes?.position?.array;
-          if (!positions || positions.length < 9) return;
-          const geometry = new THREE.BufferGeometry();
-          geometry.setAttribute("position", new THREE.Float32BufferAttribute(Array.from(positions), 3));
-          const normals = mesh.attributes?.normal?.array;
-          if (normals?.length) {
-            geometry.setAttribute("normal", new THREE.Float32BufferAttribute(Array.from(normals), 3));
-          }
-          const indices = mesh.index?.array;
-          if (indices?.length) geometry.setIndex(Array.from(indices));
-          geometry.computeBoundingBox();
-          if (!normals?.length) geometry.computeVertexNormals();
-          const material = new THREE.MeshStandardMaterial({
-            color: occtColorToThree(THREE, mesh.color),
-            metalness: 0.72,
-            roughness: 0.36,
-            side: THREE.DoubleSide
-          });
-          group.add(new THREE.Mesh(geometry, material));
-        });
+        const group = buildModelGroupFromMeshData(THREE, meshData);
 
         if (!group.children.length) throw new Error("Model has no renderable mesh");
         const box = new THREE.Box3().setFromObject(group);
