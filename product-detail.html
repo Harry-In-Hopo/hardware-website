@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Product Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #172026;
@@ -168,6 +171,53 @@
       display: none !important;
     }
 
+    .model-viewer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 460px;
+      background: #f5f6f2;
+    }
+
+    .model-viewer canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: inherit;
+      background: #f5f6f2;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .model-viewer canvas:active {
+      cursor: grabbing;
+    }
+
+    .model-status {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 18px;
+      min-height: 38px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #273238;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(23,32,38,.12);
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 800;
+      backdrop-filter: blur(10px);
+    }
+
+    .model-status.ready {
+      color: #0d0f12;
+      background: rgba(201,168,76,.84);
+      border-color: rgba(201,168,76,.55);
+    }
+
     .image-panel + .summary {
       border-left: 0;
     }
@@ -207,6 +257,34 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+
+    .media-toggle {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .media-toggle.hidden {
+      display: none;
+    }
+
+    .media-view-btn {
+      min-height: 38px;
+      padding: 0 13px;
+      color: #3d4a51;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .media-view-btn.active {
+      color: white;
+      background: var(--dark);
+      border-color: var(--dark);
     }
 
     .chip {
@@ -470,6 +548,304 @@
       .summary { padding: 28px 22px; }
       .spec-grid { grid-template-columns: 1fr; }
     }
+
+    :root {
+      --color-bg-deep: #0d0f12;
+      --color-bg-card: #161a1f;
+      --color-bg-section: #1c2028;
+      --color-silver: #c8cdd6;
+      --color-chrome: #e8eaf0;
+      --color-gold: #c9a84c;
+      --color-gold-light: #e8c97a;
+      --color-text-body: #8a9099;
+      --color-border: #2a2f38;
+      --font-display: "Bebas Neue", Impact, sans-serif;
+      --font-body: "Noto Sans SC", "Segoe UI", Arial, sans-serif;
+      --ink: var(--color-chrome);
+      --muted: var(--color-text-body);
+      --line: var(--color-border);
+      --paper: var(--color-bg-deep);
+      --panel: var(--color-bg-card);
+      --soft: var(--color-bg-section);
+      --dark: #090b0d;
+      --red: var(--color-gold);
+      --shadow: 0 24px 80px rgba(0,0,0,.42);
+      font-family: var(--font-body);
+    }
+
+    body {
+      color: var(--color-chrome);
+      background:
+        radial-gradient(760px 460px at 14% 8%, rgba(201,168,76,.10), transparent 64%),
+        linear-gradient(180deg, #0d0f12 0%, #12161b 54%, #0b0d10 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.026) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+      background-size: 58px 58px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.72), transparent 72%);
+      pointer-events: none;
+    }
+
+    .topbar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      min-height: 74px;
+      color: var(--color-chrome);
+      background: rgba(13,15,18,.84);
+      border-bottom: 1px solid rgba(201,168,76,.18);
+      animation: navDrop .7s cubic-bezier(.22,1,.36,1) .1s both;
+    }
+
+    @keyframes navDrop {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .brand-mark {
+      color: #0d0f12;
+      background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+      border-radius: 4px;
+      box-shadow: 0 0 28px rgba(201,168,76,.25);
+    }
+
+    .brand small,
+    .summary-text,
+    .section-head p,
+    .download-meta,
+    .download-text,
+    td:nth-child(3) {
+      color: var(--color-text-body);
+    }
+
+    .lang-toggle {
+      background: rgba(255,255,255,.04);
+      border-color: var(--color-border);
+      border-radius: 4px;
+    }
+
+    .lang-btn {
+      color: var(--color-silver);
+      border-radius: 3px;
+    }
+
+    .lang-btn.active {
+      color: #0d0f12;
+      background: var(--color-gold);
+    }
+
+    .back-link,
+    .download-btn {
+      color: #0d0f12;
+      background: var(--color-gold);
+      border-radius: 4px;
+      transition: transform .22s ease, background .22s ease;
+    }
+
+    .back-link:hover,
+    .download-btn:hover {
+      transform: translateY(-2px);
+      background: var(--color-gold-light);
+    }
+
+    .wrap {
+      padding-top: 74px;
+    }
+
+    .hero,
+    .section {
+      background: linear-gradient(180deg, rgba(255,255,255,.032), rgba(255,255,255,.012)), var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.36);
+    }
+
+    .hero {
+      border-color: rgba(201,168,76,.2);
+    }
+
+    .image-panel {
+      position: relative;
+      background: #f5f6f2;
+      min-height: 520px;
+    }
+
+    .image-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset -1px 0 0 rgba(201,168,76,.16);
+    }
+
+    .image-panel img,
+    .image-panel video {
+      object-fit: cover;
+      transform: scale(1.006);
+      background: #f5f6f2;
+    }
+
+    .summary {
+      padding: clamp(34px, 5vw, 58px);
+      background:
+        radial-gradient(420px 280px at 70% 22%, rgba(201,168,76,.08), transparent 62%),
+        transparent;
+    }
+
+    .eyebrow {
+      color: var(--color-gold-light);
+      letter-spacing: .2em;
+    }
+
+    h1 {
+      color: var(--color-chrome);
+      font-family: var(--font-display);
+      font-size: clamp(48px, 8vw, 92px);
+      line-height: .92;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+    }
+
+    .chip,
+    .media-view-btn,
+    .finish-btn,
+    .download-meta span {
+      color: var(--color-silver);
+      background: rgba(255,255,255,.055);
+      border-color: var(--color-border);
+      border-radius: 999px;
+    }
+
+    .finish-picker,
+    .media-toggle,
+    .section-head,
+    .download-action {
+      border-color: var(--color-border);
+    }
+
+    .media-view-btn.active {
+      color: #0d0f12;
+      background: var(--color-gold);
+      border-color: var(--color-gold);
+    }
+
+    .finish-label {
+      color: var(--color-gold-light);
+    }
+
+    .finish-btn {
+      transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+
+    .finish-btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(201,168,76,.5);
+    }
+
+    .finish-btn.active {
+      color: var(--color-chrome);
+      border-color: var(--color-gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.14);
+    }
+
+    .swatch {
+      border-color: rgba(232,234,240,.28);
+    }
+
+    .section-head h2 {
+      color: var(--color-chrome);
+      font-family: var(--font-display);
+      font-size: 36px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .spec-grid {
+      background: var(--color-border);
+    }
+
+    .spec-box {
+      background: rgba(13,15,18,.46);
+    }
+
+    .spec-box b {
+      color: var(--color-gold-light);
+    }
+
+    .spec-box span {
+      color: var(--color-chrome);
+    }
+
+    table {
+      color: var(--color-silver);
+    }
+
+    th {
+      color: #0d0f12;
+      background: var(--color-gold);
+    }
+
+    th,
+    td {
+      border-color: var(--color-border);
+    }
+
+    td:nth-child(1) {
+      color: var(--color-chrome);
+    }
+
+    .download-card {
+      min-height: 320px;
+    }
+
+    .download-action {
+      background: rgba(13,15,18,.34);
+    }
+
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(34px);
+    }
+
+    [data-reveal].is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1);
+    }
+
+    @media (max-width: 920px) {
+      .wrap { padding-top: 68px; }
+      .topbar { min-height: 68px; }
+      .image-panel { min-height: 360px; }
+      .model-viewer { min-height: 360px; }
+    }
+
+    @media (max-width: 620px) {
+      .summary { padding: 28px 22px; }
+      h1 { font-size: clamp(44px, 15vw, 64px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+      [data-reveal] {
+        opacity: 1;
+        transform: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -488,16 +864,24 @@
   </header>
 
   <main class="wrap">
-    <section class="hero">
+    <section class="hero" data-reveal>
       <div class="image-panel">
         <img id="productImage" src="" alt="">
         <video id="productVideo" class="hidden" muted autoplay loop playsinline></video>
+        <div id="modelViewer" class="model-viewer hidden">
+          <canvas id="modelCanvas" aria-label="Manual 3D model viewer"></canvas>
+          <div id="modelStatus" class="model-status" data-i18n="modelLoading">Loading 3D model...</div>
+        </div>
       </div>
       <div class="summary">
         <p class="eyebrow" id="categoryName">Category</p>
         <h1 id="productName">Product Name</h1>
         <p class="summary-text" id="productDescription">Product description.</p>
         <div class="chips" id="chips"></div>
+        <div class="media-toggle hidden" id="mediaToggle">
+          <button class="media-view-btn active" type="button" data-media-view="media" data-i18n="mediaProduct">Product Media</button>
+          <button class="media-view-btn" type="button" data-media-view="model" data-i18n="mediaModel">3D Manual Rotation</button>
+        </div>
         <div class="finish-picker hidden" id="finishPicker">
           <p class="finish-label" data-i18n="finishLabel">Color / Finish</p>
           <div class="finish-options" id="finishOptions"></div>
@@ -505,7 +889,7 @@
       </div>
     </section>
 
-    <section class="section">
+    <section class="section" data-reveal>
       <div class="section-head">
         <h2 data-i18n="overviewTitle">Key Specifications</h2>
         <p data-i18n="overviewText">Quick fields shown from the product table.</p>
@@ -513,7 +897,7 @@
       <div class="spec-grid" id="specGrid"></div>
     </section>
 
-    <section class="section">
+    <section class="section" data-reveal>
       <div class="section-head">
         <h2 data-i18n="paramTitle">Product Parameters</h2>
         <p data-i18n="paramText">This table is ready for the detailed parameters from your spreadsheet.</p>
@@ -533,7 +917,7 @@
     </section>
 
     <div class="two-col">
-      <section class="section download-card">
+      <section class="section download-card" data-reveal>
         <div class="section-head">
           <h2 data-i18n="tdsTitle">TDS</h2>
           <p data-i18n="tdsSubtitle">Technical Data Sheet</p>
@@ -550,7 +934,7 @@
         </div>
       </section>
 
-      <section class="section download-card">
+      <section class="section download-card" data-reveal>
         <div class="section-head">
           <h2 data-i18n="manualTitle">Installation Manual</h2>
           <p data-i18n="manualSubtitle">Installation Instructions</p>
@@ -569,7 +953,7 @@
     </div>
   </main>
 
-  <script src="catalog-data.js?v=20260518-ph904-video-v4"></script>
+  <script src="catalog-data.js?v=20260525-catt56-model"></script>
   <script>
     const i18n = {
       en: {
@@ -577,6 +961,13 @@
         brandTitle: "Hardware Catalog",
         brandSub: "Product Detail",
         back: "Back to Products",
+        mediaProduct: "Product Media",
+        mediaModel: "3D Manual Rotation",
+        modelLoading: "Loading 3D model...",
+        modelReady: "3D model ready. Drag to rotate, scroll to zoom.",
+        modelFailed: "3D model failed to load. Check the model file or network.",
+        model3d: "3D Model",
+        manual3dAvailable: "Manual 3D rotation available",
         finishLabel: "Color / Finish",
         overviewTitle: "Key Specifications",
         overviewText: "Quick fields shown from the product table.",
@@ -625,6 +1016,13 @@
         brandTitle: "五金产品目录",
         brandSub: "产品详情",
         back: "返回产品列表",
+        mediaProduct: "产品图片 / 视频",
+        mediaModel: "3D 手动旋转",
+        modelLoading: "正在加载 3D 模型...",
+        modelReady: "3D 模型已载入，可拖动旋转、滚轮缩放。",
+        modelFailed: "3D 模型加载失败，请检查模型文件或网络。",
+        model3d: "3D 模型",
+        manual3dAvailable: "支持手动 3D 旋转查看",
         finishLabel: "颜色 / 表面处理",
         overviewTitle: "关键规格",
         overviewText: "这里展示来自产品表格的核心字段。",
@@ -686,17 +1084,42 @@
 
     const productImage = document.querySelector("#productImage");
     const productVideo = document.querySelector("#productVideo");
+    const modelViewer = document.querySelector("#modelViewer");
+    const modelCanvas = document.querySelector("#modelCanvas");
+    const modelStatus = document.querySelector("#modelStatus");
     const productName = document.querySelector("#productName");
     const productDescription = document.querySelector("#productDescription");
     const categoryName = document.querySelector("#categoryName");
     const chips = document.querySelector("#chips");
     const finishPicker = document.querySelector("#finishPicker");
     const finishOptions = document.querySelector("#finishOptions");
+    const mediaToggle = document.querySelector("#mediaToggle");
+    const mediaButtons = document.querySelectorAll(".media-view-btn");
     const specGrid = document.querySelector("#specGrid");
     const parameterRows = document.querySelector("#parameterRows");
     const backLink = document.querySelector("#backLink");
     const backBrand = document.querySelector("#backBrand");
     const langButtons = document.querySelectorAll(".lang-btn");
+    const revealObserver = "IntersectionObserver" in window ? new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-visible");
+        revealObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.14 }) : null;
+    const OCCT_CDN_BASE = "https://cdn.jsdelivr.net/npm/occt-import-js@0.0.23/dist/";
+    let activeMediaView = "media";
+    let modelViewerStarted = false;
+    let modelViewerLoading = false;
+    let modelViewerScene = null;
+    let modelViewerRenderer = null;
+    let modelViewerCamera = null;
+    let modelViewerObject = null;
+    let modelViewerDistance = 5.8;
+    let modelViewerInteractionReady = false;
+    let modelViewerResizeObserver = null;
+    let occtScriptPromise = null;
+    let occtInstancePromise = null;
 
     function t(key) {
       return i18n[lang][key] || i18n.en[key] || key;
@@ -724,7 +1147,230 @@
       return data.images[item.category] || data.images.handles;
     }
 
+    function hasModel3d() {
+      return Boolean(item.model3d);
+    }
+
+    function setMediaButtons() {
+      mediaToggle.classList.toggle("hidden", !hasModel3d());
+      mediaButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.mediaView === activeMediaView);
+      });
+    }
+
+    async function initOcct() {
+      if (occtInstancePromise) return occtInstancePromise;
+      if (!window.occtimportjs) {
+        if (!occtScriptPromise) {
+          occtScriptPromise = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = `${OCCT_CDN_BASE}occt-import-js.js`;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+        await occtScriptPromise;
+      }
+      occtInstancePromise = window.occtimportjs({
+        locateFile: (name) => `${OCCT_CDN_BASE}${name}`
+      });
+      return occtInstancePromise;
+    }
+
+    function stepParseParams() {
+      return {
+        linearUnit: "millimeter",
+        linearDeflectionType: "bounding_box_ratio",
+        linearDeflection: 0.012,
+        angularDeflection: 0.85
+      };
+    }
+
+    function occtColorToThree(THREE, color) {
+      if (!Array.isArray(color) || color.length < 3) return new THREE.Color(0x9da7aa);
+      const channels = color.slice(0, 3).map((value) => Number(value));
+      if (channels.some((value) => !Number.isFinite(value))) return new THREE.Color(0x9da7aa);
+      const max = Math.max(...channels);
+      return new THREE.Color(...channels.map((value) => max > 1 ? value / 255 : value));
+    }
+
+    function resizeModelViewer() {
+      if (!modelViewerRenderer || !modelViewerCamera) return;
+      const rect = modelViewer.getBoundingClientRect();
+      const width = Math.max(320, Math.floor(rect.width));
+      const height = Math.max(320, Math.floor(rect.height));
+      modelViewerRenderer.setSize(width, height, false);
+      modelViewerCamera.aspect = width / height;
+      modelViewerCamera.updateProjectionMatrix();
+    }
+
+    function withTimeout(promise, timeoutMs, label) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(label)), timeoutMs))
+      ]);
+    }
+
+    function updateModelCamera() {
+      if (!modelViewerCamera) return;
+      modelViewerCamera.position.set(3.6, -4.3, 2.6).setLength(modelViewerDistance);
+      modelViewerCamera.lookAt(0, 0, 0);
+    }
+
+    function setupModelInteraction() {
+      if (modelViewerInteractionReady) return;
+      modelViewerInteractionReady = true;
+      let dragging = false;
+      let lastX = 0;
+      let lastY = 0;
+
+      modelCanvas.addEventListener("pointerdown", (event) => {
+        dragging = true;
+        lastX = event.clientX;
+        lastY = event.clientY;
+        modelCanvas.setPointerCapture?.(event.pointerId);
+      });
+
+      modelCanvas.addEventListener("pointermove", (event) => {
+        if (!dragging || !modelViewerObject) return;
+        const dx = event.clientX - lastX;
+        const dy = event.clientY - lastY;
+        modelViewerObject.rotation.z += dx * 0.012;
+        modelViewerObject.rotation.x += dy * 0.012;
+        lastX = event.clientX;
+        lastY = event.clientY;
+      });
+
+      modelCanvas.addEventListener("pointerup", (event) => {
+        dragging = false;
+        modelCanvas.releasePointerCapture?.(event.pointerId);
+      });
+
+      modelCanvas.addEventListener("pointercancel", () => {
+        dragging = false;
+      });
+
+      modelCanvas.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        modelViewerDistance = Math.min(10, Math.max(3.2, modelViewerDistance + event.deltaY * 0.004));
+        updateModelCamera();
+      }, { passive: false });
+    }
+
+    async function ensureModelViewer() {
+      if (!hasModel3d() || modelViewerStarted || modelViewerLoading) return;
+      modelViewerLoading = true;
+      modelStatus.classList.remove("ready");
+      modelStatus.textContent = t("modelLoading");
+      try {
+        const THREE = await withTimeout(import("./assets/vendor/three.module.js"), 20000, "Three.js module load timed out");
+
+        if (!modelViewerRenderer) {
+          modelViewerRenderer = new THREE.WebGLRenderer({ canvas: modelCanvas, antialias: true });
+          modelViewerRenderer.setClearColor(0xf5f6f2, 1);
+          modelViewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          modelViewerScene = new THREE.Scene();
+          modelViewerCamera = new THREE.PerspectiveCamera(36, 1, 0.1, 1000);
+          updateModelCamera();
+          setupModelInteraction();
+          modelViewerScene.add(new THREE.HemisphereLight(0xffffff, 0xb7bdc5, 2.4));
+          const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+          keyLight.position.set(4, -5, 6);
+          modelViewerScene.add(keyLight);
+          const fillLight = new THREE.DirectionalLight(0xc9d2dd, 1.3);
+          fillLight.position.set(-5, 3, 4);
+          modelViewerScene.add(fillLight);
+          modelViewerResizeObserver = new ResizeObserver(resizeModelViewer);
+          modelViewerResizeObserver.observe(modelViewer);
+          const animate = () => {
+            requestAnimationFrame(animate);
+            updateModelCamera();
+            modelViewerRenderer?.render(modelViewerScene, modelViewerCamera);
+          };
+          animate();
+        }
+
+        resizeModelViewer();
+        const response = await withTimeout(fetch(item.model3d), 20000, "Model file request timed out");
+        if (!response.ok) throw new Error(`Model request failed: ${response.status}`);
+        const buffer = await withTimeout(response.arrayBuffer(), 30000, "Model file read timed out");
+        const occt = await withTimeout(initOcct(), 30000, "OCCT loader timed out");
+        const result = occt.ReadStepFile(new Uint8Array(buffer), stepParseParams());
+        if (!result?.success || !result.meshes?.length) throw new Error("No STEP mesh returned");
+
+        const group = new THREE.Group();
+        result.meshes.forEach((mesh) => {
+          const positions = mesh.attributes?.position?.array;
+          if (!positions || positions.length < 9) return;
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute("position", new THREE.Float32BufferAttribute(Array.from(positions), 3));
+          const normals = mesh.attributes?.normal?.array;
+          if (normals?.length) {
+            geometry.setAttribute("normal", new THREE.Float32BufferAttribute(Array.from(normals), 3));
+          }
+          const indices = mesh.index?.array;
+          if (indices?.length) geometry.setIndex(Array.from(indices));
+          geometry.computeBoundingBox();
+          if (!normals?.length) geometry.computeVertexNormals();
+          const material = new THREE.MeshStandardMaterial({
+            color: occtColorToThree(THREE, mesh.color),
+            metalness: 0.72,
+            roughness: 0.36,
+            side: THREE.DoubleSide
+          });
+          group.add(new THREE.Mesh(geometry, material));
+        });
+
+        if (!group.children.length) throw new Error("Model has no renderable mesh");
+        const box = new THREE.Box3().setFromObject(group);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxSize = Math.max(size.x, size.y, size.z) || 1;
+        group.children.forEach((child) => {
+          child.geometry.translate(-center.x, -center.y, -center.z);
+        });
+        group.scale.setScalar(3.2 / maxSize);
+        group.rotation.x = -Math.PI / 2;
+        modelViewerObject = group;
+        modelViewerScene.add(group);
+        window.modelViewerDebug = {
+          meshes: group.children.length,
+          size: { x: size.x, y: size.y, z: size.z },
+          center: { x: center.x, y: center.y, z: center.z },
+          scale: 3.2 / maxSize
+        };
+        modelViewerDistance = 5.8;
+        updateModelCamera();
+        modelStatus.textContent = t("modelReady");
+        modelStatus.classList.add("ready");
+        modelViewerStarted = true;
+      } catch (error) {
+        console.error(error);
+        window.modelViewerLastError = String(error?.stack || error?.message || error);
+        modelStatus.textContent = t("modelFailed");
+      } finally {
+        modelViewerLoading = false;
+      }
+    }
+
     function renderMedia() {
+      setMediaButtons();
+      if (hasModel3d() && activeMediaView === "model") {
+        productVideo.pause();
+        productVideo.classList.add("hidden");
+        productImage.classList.add("hidden");
+        modelViewer.classList.remove("hidden");
+        if (modelViewerStarted) {
+          modelStatus.textContent = t("modelReady");
+          modelStatus.classList.add("ready");
+        }
+        ensureModelViewer();
+        return;
+      }
+
+      modelViewer.classList.add("hidden");
       if (item.video) {
         productImage.classList.add("hidden");
         productVideo.classList.remove("hidden");
@@ -825,10 +1471,22 @@
         rows.push([t("finish"), isHandle() ? currentFinish().value[lang] : t("toBeConfirmed"), t("fromTable")]);
       }
 
+      if (item.model3d) rows.push([t("model3d"), t("manual3dAvailable"), item.model3d]);
       if (text(item.remarks)) rows.push([t("remarks"), text(item.remarks), t("fromTable")]);
       if (!text(item.params)) rows.push([t("package"), t("toBeConfirmed"), t("fromTable")]);
 
       parameterRows.innerHTML = rows.map((row) => `<tr><td>${escapeHtml(row[0])}</td><td>${escapeHtml(row[1])}</td><td>${escapeHtml(row[2])}</td></tr>`).join("");
+    }
+
+    function observeReveal() {
+      document.querySelectorAll("[data-reveal]").forEach((target, index) => {
+        target.style.transitionDelay = `${Math.min(index * 0.08, 0.32)}s`;
+        if (revealObserver) {
+          revealObserver.observe(target);
+        } else {
+          target.classList.add("is-visible");
+        }
+      });
     }
 
     function applyLanguage() {
@@ -870,7 +1528,15 @@
       renderParameters();
     });
 
+    mediaToggle.addEventListener("click", (event) => {
+      const button = event.target.closest(".media-view-btn");
+      if (!button) return;
+      activeMediaView = button.dataset.mediaView;
+      renderMedia();
+    });
+
     applyLanguage();
+    observeReveal();
   </script>
 </body>
 </html>

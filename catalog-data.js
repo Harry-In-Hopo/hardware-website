@@ -6484,6 +6484,31 @@ window.CATALOG_DATA = {
       }
     },
     {
+      "sku": "CTT56.00.38RSO5",
+      "code": "CTT56.00.38RSO5",
+      "category": "hinges",
+      "app": "window door",
+      "page": 57,
+      "name": {
+        "en": "CTT56 Hinge",
+        "zh": "CTT56 铰链"
+      },
+      "description": {
+        "en": "Hinge product with an imported STP model for manual 3D rotation preview.",
+        "zh": "已导入 STP 三维模型，可在详情页手动旋转查看的铰链产品。"
+      },
+      "subcategory": {
+        "en": "Hinge",
+        "zh": "铰链",
+        "raw": "CTT56 Hinge"
+      },
+      "params": {
+        "en": "Product Code: CTT56.00.38RSO5\nModel File: catt56-20-38r.stp\n3D Preview: Manual rotation available on the detail page",
+        "zh": "产品编号：CTT56.00.38RSO5\n模型文件：catt56-20-38r.stp\n三维预览：详情页支持手动旋转查看"
+      },
+      "model3d": "assets/models/catt56-20-38r.stp"
+    },
+    {
       "sku": "ROL-01",
       "category": "rollers",
       "app": "sliding",
