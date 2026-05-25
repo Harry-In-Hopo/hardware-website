@@ -33,6 +33,24 @@
     button { font: inherit; cursor: pointer; }
     img { display: block; max-width: 100%; }
 
+    button:focus:not(:focus-visible),
+    a:focus:not(:focus-visible),
+    input:focus:not(:focus-visible),
+    select:focus:not(:focus-visible),
+    video:focus,
+    canvas:focus {
+      outline: 0;
+      box-shadow: none;
+    }
+
+    button:focus-visible,
+    a:focus-visible,
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid rgba(168,50,58,.42);
+      outline-offset: 3px;
+    }
+
     .topbar {
       position: sticky;
       top: 0;
@@ -159,6 +177,7 @@
     .image-panel video {
       background: #eef2ef;
       pointer-events: none;
+      outline: 0;
     }
 
     .image-panel video::-webkit-media-controls {
@@ -1000,11 +1019,11 @@
 
     .image-panel {
       min-height: 520px;
-      border-right: 1px solid var(--line);
+      border-right: 0;
     }
 
     .image-panel::after {
-      box-shadow: inset -1px 0 0 rgba(31,42,48,.06);
+      display: none;
     }
 
     .image-panel img,
@@ -1935,6 +1954,7 @@
       if (!button) return;
       activeMediaView = button.dataset.mediaView;
       renderMedia();
+      button.blur();
     });
 
     applyLanguage();
