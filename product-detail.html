@@ -1293,10 +1293,10 @@
         }
 
         resizeModelViewer();
-        const response = await withTimeout(fetch(item.model3d), 20000, "Model file request timed out");
+        const response = await withTimeout(fetch(item.model3d), 120000, "Model file request timed out");
         if (!response.ok) throw new Error(`Model request failed: ${response.status}`);
-        const buffer = await withTimeout(response.arrayBuffer(), 30000, "Model file read timed out");
-        const occt = await withTimeout(initOcct(), 30000, "OCCT loader timed out");
+        const buffer = await withTimeout(response.arrayBuffer(), 120000, "Model file read timed out");
+        const occt = await withTimeout(initOcct(), 60000, "OCCT loader timed out");
         const result = occt.ReadStepFile(new Uint8Array(buffer), stepParseParams());
         if (!result?.success || !result.meshes?.length) throw new Error("No STEP mesh returned");
 
