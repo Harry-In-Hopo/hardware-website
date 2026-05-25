@@ -218,6 +218,32 @@
       border-color: rgba(201,168,76,.55);
     }
 
+    .model-tools {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .model-tool-btn {
+      min-height: 36px;
+      padding: 0 12px;
+      color: #273238;
+      background: rgba(255,255,255,.84);
+      border: 1px solid rgba(23,32,38,.14);
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 800;
+      backdrop-filter: blur(10px);
+    }
+
+    .model-tool-btn:hover {
+      color: #0d0f12;
+      border-color: rgba(201,168,76,.72);
+      background: rgba(201,168,76,.88);
+    }
+
     .image-panel + .summary {
       border-left: 0;
     }
@@ -870,6 +896,9 @@
         <video id="productVideo" class="hidden" muted autoplay loop playsinline></video>
         <div id="modelViewer" class="model-viewer hidden">
           <canvas id="modelCanvas" aria-label="Manual 3D model viewer"></canvas>
+          <div class="model-tools">
+            <button id="modelReset" class="model-tool-btn" type="button" data-i18n="modelReset">Reset View</button>
+          </div>
           <div id="modelStatus" class="model-status" data-i18n="modelLoading">Loading 3D model...</div>
         </div>
       </div>
@@ -966,6 +995,7 @@
         modelLoading: "Loading 3D model...",
         modelReady: "3D model ready. Drag to rotate, scroll to zoom.",
         modelFailed: "3D model failed to load. Check the model file or network.",
+        modelReset: "Reset View",
         model3d: "3D Model",
         manual3dAvailable: "Manual 3D rotation available",
         finishLabel: "Color / Finish",
@@ -1021,6 +1051,7 @@
         modelLoading: "正在加载 3D 模型...",
         modelReady: "3D 模型已载入，可拖动旋转、滚轮缩放。",
         modelFailed: "3D 模型加载失败，请检查模型文件或网络。",
+        modelReset: "复位视角",
         model3d: "3D 模型",
         manual3dAvailable: "支持手动 3D 旋转查看",
         finishLabel: "颜色 / 表面处理",
@@ -1086,6 +1117,7 @@
     const productVideo = document.querySelector("#productVideo");
     const modelViewer = document.querySelector("#modelViewer");
     const modelCanvas = document.querySelector("#modelCanvas");
+    const modelReset = document.querySelector("#modelReset");
     const modelStatus = document.querySelector("#modelStatus");
     const productName = document.querySelector("#productName");
     const productDescription = document.querySelector("#productDescription");
@@ -1115,7 +1147,9 @@
     let modelViewerRenderer = null;
     let modelViewerCamera = null;
     let modelViewerObject = null;
+    let modelViewerThree = null;
     let modelViewerDistance = 5.8;
+    let modelViewerZoom = 1;
     let modelViewerInteractionReady = false;
     let modelViewerResizeObserver = null;
     let occtScriptPromise = null;
@@ -1249,7 +1283,16 @@
       const width = Math.max(320, Math.floor(rect.width));
       const height = Math.max(320, Math.floor(rect.height));
       modelViewerRenderer.setSize(width, height, false);
-      modelViewerCamera.aspect = width / height;
+      const aspect = width / height;
+      if (modelViewerCamera.isOrthographicCamera) {
+        const viewSize = 4.35;
+        modelViewerCamera.left = -viewSize * aspect / 2;
+        modelViewerCamera.right = viewSize * aspect / 2;
+        modelViewerCamera.top = viewSize / 2;
+        modelViewerCamera.bottom = -viewSize / 2;
+      } else {
+        modelViewerCamera.aspect = aspect;
+      }
       modelViewerCamera.updateProjectionMatrix();
     }
 
@@ -1266,44 +1309,86 @@
       modelViewerCamera.lookAt(0, 0, 0);
     }
 
+    function syncModelQuaternion() {
+      if (!modelViewerObject) return;
+      const base = modelViewerObject.userData.baseQuaternion;
+      const manual = modelViewerObject.userData.manualQuaternion;
+      if (!base || !manual) return;
+      modelViewerObject.quaternion.multiplyQuaternions(manual, base);
+    }
+
+    function resetModelView() {
+      modelViewerDistance = 5.8;
+      modelViewerZoom = 1;
+      if (modelViewerObject?.userData.manualQuaternion) {
+        modelViewerObject.userData.manualQuaternion.identity();
+        syncModelQuaternion();
+      }
+      if (modelViewerCamera) {
+        modelViewerCamera.zoom = modelViewerZoom;
+        modelViewerCamera.updateProjectionMatrix();
+        updateModelCamera();
+      }
+    }
+
     function setupModelInteraction() {
       if (modelViewerInteractionReady) return;
       modelViewerInteractionReady = true;
       let dragging = false;
+      let activePointerId = null;
       let lastX = 0;
       let lastY = 0;
 
       modelCanvas.addEventListener("pointerdown", (event) => {
         dragging = true;
+        activePointerId = event.pointerId;
         lastX = event.clientX;
         lastY = event.clientY;
         modelCanvas.setPointerCapture?.(event.pointerId);
       });
 
       modelCanvas.addEventListener("pointermove", (event) => {
-        if (!dragging || !modelViewerObject) return;
+        if (!dragging || event.pointerId !== activePointerId || !modelViewerObject || !modelViewerThree) return;
         const dx = event.clientX - lastX;
         const dy = event.clientY - lastY;
-        modelViewerObject.rotation.z += dx * 0.012;
-        modelViewerObject.rotation.x += dy * 0.012;
         lastX = event.clientX;
         lastY = event.clientY;
+        const sensitivity = 0.014;
+        const zRotation = new modelViewerThree.Quaternion().setFromAxisAngle(
+          new modelViewerThree.Vector3(0, 0, 1),
+          dx * sensitivity
+        );
+        const xRotation = new modelViewerThree.Quaternion().setFromAxisAngle(
+          new modelViewerThree.Vector3(1, 0, 0),
+          dy * sensitivity
+        );
+        const dragRotation = new modelViewerThree.Quaternion().multiplyQuaternions(zRotation, xRotation);
+        modelViewerObject.userData.manualQuaternion.premultiply(dragRotation);
+        syncModelQuaternion();
       });
 
       modelCanvas.addEventListener("pointerup", (event) => {
+        if (activePointerId !== null && event.pointerId !== activePointerId) return;
         dragging = false;
+        activePointerId = null;
         modelCanvas.releasePointerCapture?.(event.pointerId);
       });
 
       modelCanvas.addEventListener("pointercancel", () => {
         dragging = false;
+        activePointerId = null;
       });
 
       modelCanvas.addEventListener("wheel", (event) => {
         event.preventDefault();
-        modelViewerDistance = Math.min(10, Math.max(3.2, modelViewerDistance + event.deltaY * 0.004));
-        updateModelCamera();
+        modelViewerZoom = Math.min(2.4, Math.max(.58, modelViewerZoom - event.deltaY * 0.0012));
+        if (modelViewerCamera) {
+          modelViewerCamera.zoom = modelViewerZoom;
+          modelViewerCamera.updateProjectionMatrix();
+        }
       }, { passive: false });
+
+      modelReset.addEventListener("click", resetModelView);
     }
 
     async function ensureModelViewer() {
@@ -1313,13 +1398,15 @@
       modelStatus.textContent = t("modelLoading");
       try {
         const THREE = await withTimeout(import("./assets/vendor/three.module.js"), 20000, "Three.js module load timed out");
+        modelViewerThree = THREE;
 
         if (!modelViewerRenderer) {
           modelViewerRenderer = new THREE.WebGLRenderer({ canvas: modelCanvas, antialias: true });
           modelViewerRenderer.setClearColor(0xf5f6f2, 1);
           modelViewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
           modelViewerScene = new THREE.Scene();
-          modelViewerCamera = new THREE.PerspectiveCamera(36, 1, 0.1, 1000);
+          modelViewerCamera = new THREE.OrthographicCamera(-2.2, 2.2, 2.2, -2.2, 0.1, 1000);
+          modelViewerCamera.zoom = modelViewerZoom;
           updateModelCamera();
           setupModelInteraction();
           modelViewerScene.add(new THREE.HemisphereLight(0xffffff, 0xb7bdc5, 2.4));
@@ -1367,8 +1454,11 @@
           child.geometry.translate(-center.x, -center.y, -center.z);
         });
         group.scale.setScalar(3.2 / maxSize);
-        group.rotation.x = -Math.PI / 2;
+        group.rotation.set(-Math.PI / 2, 0, 0);
+        group.userData.baseQuaternion = group.quaternion.clone();
+        group.userData.manualQuaternion = new THREE.Quaternion();
         modelViewerObject = group;
+        syncModelQuaternion();
         modelViewerScene.add(group);
         window.modelViewerDebug = {
           meshes: group.children.length,
@@ -1377,6 +1467,9 @@
           scale: 3.2 / maxSize
         };
         modelViewerDistance = 5.8;
+        modelViewerZoom = 1;
+        modelViewerCamera.zoom = modelViewerZoom;
+        modelViewerCamera.updateProjectionMatrix();
         updateModelCamera();
         modelStatus.textContent = t("modelReady");
         modelStatus.classList.add("ready");
@@ -1506,7 +1599,7 @@
         rows.push([t("finish"), isHandle() ? currentFinish().value[lang] : t("toBeConfirmed"), t("fromTable")]);
       }
 
-      if (item.model3d) rows.push([t("model3d"), t("manual3dAvailable"), item.model3d]);
+      if (hasModel3d()) rows.push([t("model3d"), t("manual3dAvailable"), item.model3d || item.modelMesh]);
       if (text(item.remarks)) rows.push([t("remarks"), text(item.remarks), t("fromTable")]);
       if (!text(item.params)) rows.push([t("package"), t("toBeConfirmed"), t("fromTable")]);
 
