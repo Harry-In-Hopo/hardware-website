@@ -6288,6 +6288,32 @@ window.CATALOG_DATA = {
       }
     },
     {
+      "sku": "AGC52.00.XX",
+      "code": "AGC52.00.XX",
+      "category": "transmission",
+      "app": "window",
+      "page": 43,
+      "name": {
+        "en": "AGC52 Gear Case Housing",
+        "zh": "AGC52 传动壳"
+      },
+      "description": {
+        "en": "Transmission housing with an imported STP model and fast manual 3D rotation preview.",
+        "zh": "已导入 STP 三维模型，并预处理为快速加载的手动旋转传动壳产品。"
+      },
+      "subcategory": {
+        "en": "Gear Case",
+        "zh": "传动齿轮箱",
+        "raw": "AGC52 Gear Case Housing"
+      },
+      "params": {
+        "en": "Product Code: AGC52.00.XX\nModel File: agc52-00-xx.stp\n3D Preview: Manual rotation available on the detail page",
+        "zh": "产品编号：AGC52.00.XX\n模型文件：agc52-00-xx.stp\n三维预览：详情页支持手动旋转查看"
+      },
+      "model3d": "assets/models/agc52-00-xx.stp",
+      "modelBinary": "assets/models/agc52-webmesh.bin"
+    },
+    {
       "sku": "TRN-03",
       "category": "transmission",
       "app": "window door",
