@@ -1275,7 +1275,7 @@
     </div>
   </main>
 
-  <script src="catalog-data.js?v=20260525-catt56-mesh"></script>
+  <script src="catalog-data.js?v=20260526-catt56-webmesh2"></script>
   <script>
     const i18n = {
       en: {
@@ -1475,7 +1475,7 @@
     }
 
     function hasModel3d() {
-      return Boolean(item.model3d || item.modelMesh);
+      return Boolean(item.model3d || item.modelMesh || item.modelBinary);
     }
 
     function setMediaButtons() {
@@ -1567,6 +1567,64 @@
         });
         group.add(new THREE.Mesh(geometry, material));
       });
+      return group;
+    }
+
+    function align4(value) {
+      return value + ((4 - (value % 4)) % 4);
+    }
+
+    function buildModelGroupFromBinary(THREE, buffer) {
+      const bytes = new Uint8Array(buffer);
+      if (bytes.length < 20 || String.fromCharCode(bytes[0], bytes[1], bytes[2], bytes[3]) !== "HWM1") {
+        throw new Error("Unsupported web mesh format");
+      }
+      const view = new DataView(buffer);
+      const headerLength = view.getUint32(4, true);
+      const positionBytes = view.getUint32(8, true);
+      const normalBytes = view.getUint32(12, true);
+      const indexBytes = view.getUint32(16, true);
+      const headerStart = 20;
+      const headerEnd = headerStart + headerLength;
+      const header = JSON.parse(new TextDecoder().decode(bytes.subarray(headerStart, headerEnd)));
+      let offset = align4(headerEnd);
+      const positions = new Float32Array(buffer.slice(offset, offset + positionBytes));
+      offset += positionBytes;
+      const normals = new Float32Array(buffer.slice(offset, offset + normalBytes));
+      offset += normalBytes;
+      const indices = new Uint32Array(buffer.slice(offset, offset + indexBytes));
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      if (normals.length === positions.length) {
+        geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
+      }
+      if (indices.length) geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+      geometry.clearGroups();
+      (header.groups || []).forEach((group) => {
+        geometry.addGroup(group.start, group.count, group.materialIndex || 0);
+      });
+      geometry.computeBoundingBox();
+      if (normals.length !== positions.length) geometry.computeVertexNormals();
+
+      const materials = (header.materials?.length ? header.materials : [{ color: [0.62, 0.67, 0.70] }]).map((material) => new THREE.MeshStandardMaterial({
+        color: occtColorToThree(THREE, material.color),
+        metalness: 0.72,
+        roughness: 0.36,
+        side: THREE.DoubleSide
+      }));
+      const group = new THREE.Group();
+      const mesh = new THREE.Mesh(geometry, materials);
+      mesh.name = header.product || "webmesh";
+      group.add(mesh);
+      group.userData.webmeshHeader = header;
+      window.modelViewerBinaryDebug = {
+        format: header.format,
+        vertices: header.vertexCount,
+        indices: header.indexCount,
+        groups: header.groups?.length || 0,
+        materials: materials.length
+      };
       return group;
     }
 
@@ -1720,11 +1778,17 @@
         }
 
         resizeModelViewer();
-        let meshData;
-        if (item.modelMesh) {
+        let group;
+        if (item.modelBinary) {
+          const binaryResponse = await withTimeout(fetch(item.modelBinary), 120000, "Web mesh request timed out");
+          if (!binaryResponse.ok) throw new Error(`Web mesh request failed: ${binaryResponse.status}`);
+          const binaryBuffer = await withTimeout(binaryResponse.arrayBuffer(), 120000, "Web mesh read timed out");
+          group = buildModelGroupFromBinary(THREE, binaryBuffer);
+        } else if (item.modelMesh) {
           const meshResponse = await withTimeout(fetch(item.modelMesh), 120000, "Model mesh request timed out");
           if (!meshResponse.ok) throw new Error(`Model mesh request failed: ${meshResponse.status}`);
-          meshData = await withTimeout(meshResponse.json(), 120000, "Model mesh read timed out");
+          const meshData = await withTimeout(meshResponse.json(), 120000, "Model mesh read timed out");
+          group = buildModelGroupFromMeshData(THREE, meshData);
         } else {
           const response = await withTimeout(fetch(item.model3d), 120000, "Model file request timed out");
           if (!response.ok) throw new Error(`Model request failed: ${response.status}`);
@@ -1732,11 +1796,10 @@
           const occt = await withTimeout(initOcct(), 60000, "OCCT loader timed out");
           const result = occt.ReadStepFile(new Uint8Array(buffer), stepParseParams());
           if (!result?.success || !result.meshes?.length) throw new Error("No STEP mesh returned");
-          meshData = meshDataFromOcctResult(result);
+          const meshData = meshDataFromOcctResult(result);
           window.modelViewerMeshData = meshData;
+          group = buildModelGroupFromMeshData(THREE, meshData);
         }
-
-        const group = buildModelGroupFromMeshData(THREE, meshData);
 
         if (!group.children.length) throw new Error("Model has no renderable mesh");
         const box = new THREE.Box3().setFromObject(group);
@@ -1892,7 +1955,7 @@
         rows.push([t("finish"), isHandle() ? currentFinish().value[lang] : t("toBeConfirmed"), t("fromTable")]);
       }
 
-      if (hasModel3d()) rows.push([t("model3d"), t("manual3dAvailable"), item.model3d || item.modelMesh]);
+      if (hasModel3d()) rows.push([t("model3d"), t("manual3dAvailable"), item.model3d || item.modelBinary || item.modelMesh]);
       if (text(item.remarks)) rows.push([t("remarks"), text(item.remarks), t("fromTable")]);
       if (!text(item.params)) rows.push([t("package"), t("toBeConfirmed"), t("fromTable")]);
 

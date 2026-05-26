@@ -6507,6 +6507,7 @@ window.CATALOG_DATA = {
         "zh": "产品编号：CTT56.00.38RSO5\n模型文件：catt56-20-38r.stp\n三维预览：详情页支持手动旋转查看"
       },
       "model3d": "assets/models/catt56-20-38r.stp",
+      "modelBinary": "assets/models/catt56-webmesh.bin",
       "modelMesh": "assets/models/catt56-mesh.json"
     },
     {
