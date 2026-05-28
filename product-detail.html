@@ -1426,10 +1426,10 @@
     const item = data.items.find((entry) => entry.sku === sku || entry.code === sku) || data.items[0];
     const category = data.categories.find((entry) => entry.id === item.category) || data.categories[0];
     const finishes = [
-      { id: "white", label: { en: "White", zh: "白色" }, swatch: "#f4f3ec", filter: "none", value: { en: "White", zh: "白色" } },
-      { id: "black", label: { en: "Black", zh: "黑色" }, swatch: "#171a1d", filter: "grayscale(1) brightness(.36) contrast(1.35)", value: { en: "Black", zh: "黑色" } },
-      { id: "silver", label: { en: "Silver", zh: "银色" }, swatch: "linear-gradient(135deg, #f7f8f8, #9da7aa)", filter: "grayscale(1) brightness(.86) contrast(1.12)", value: { en: "Silver", zh: "银色" } },
-      { id: "bronze", label: { en: "Bronze", zh: "古铜色" }, swatch: "#8a5a31", filter: "sepia(.85) saturate(1.8) hue-rotate(340deg) brightness(.74) contrast(1.14)", value: { en: "Bronze", zh: "古铜色" } }
+      { id: "white", label: { en: "White", zh: "白色" }, swatch: "#f4f3ec", filter: "none", modelColor: [0.92, 0.91, 0.86], modelMetalness: 0.52, modelRoughness: 0.34, value: { en: "White", zh: "白色" } },
+      { id: "black", label: { en: "Black", zh: "黑色" }, swatch: "#171a1d", filter: "grayscale(1) brightness(.36) contrast(1.35)", modelColor: [0.025, 0.028, 0.032], modelMetalness: 0.58, modelRoughness: 0.42, value: { en: "Black", zh: "黑色" } },
+      { id: "silver", label: { en: "Silver", zh: "银色" }, swatch: "linear-gradient(135deg, #f7f8f8, #9da7aa)", filter: "grayscale(1) brightness(.86) contrast(1.12)", modelColor: [0.58, 0.63, 0.66], modelMetalness: 0.74, modelRoughness: 0.32, value: { en: "Silver", zh: "银色" } },
+      { id: "bronze", label: { en: "Bronze", zh: "古铜色" }, swatch: "#8a5a31", filter: "sepia(.85) saturate(1.8) hue-rotate(340deg) brightness(.74) contrast(1.14)", modelColor: [0.52, 0.33, 0.18], modelMetalness: 0.72, modelRoughness: 0.38, value: { en: "Bronze", zh: "古铜色" } }
     ];
     let selectedFinish = finishes[0].id;
 
@@ -1842,6 +1842,7 @@
         group.userData.manualQuaternion = new THREE.Quaternion();
         modelViewerObject = group;
         syncModelQuaternion();
+        applyModelFinish();
         modelViewerScene.add(group);
         window.modelViewerDebug = {
           meshes: group.children.length,
@@ -1914,6 +1915,23 @@
       return finishes.find((finish) => finish.id === selectedFinish) || finishes[0];
     }
 
+    function applyModelFinish() {
+      if (!isHandle() || !modelViewerObject || !modelViewerThree) return;
+      const finish = currentFinish();
+      const color = new modelViewerThree.Color(...(finish.modelColor || [0.58, 0.63, 0.66]));
+      modelViewerObject.traverse((node) => {
+        if (!node.isMesh) return;
+        const materials = Array.isArray(node.material) ? node.material : [node.material];
+        materials.forEach((material) => {
+          if (!material?.color) return;
+          material.color.copy(color);
+          material.metalness = finish.modelMetalness ?? material.metalness;
+          material.roughness = finish.modelRoughness ?? material.roughness;
+          material.needsUpdate = true;
+        });
+      });
+    }
+
     function appLabel() {
       const app = item.app || "";
       if (app.includes("door") && app.includes("window")) return lang === "zh" ? "窗 / 门" : "Window / Door";
@@ -1945,6 +1963,7 @@
       `).join("");
       productImage.style.filter = currentFinish().filter;
       productVideo.style.filter = currentFinish().filter;
+      applyModelFinish();
     }
 
     function renderSpecs() {
