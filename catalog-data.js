@@ -111,6 +111,8 @@ window.CATALOG_DATA = {
         "zh": "有基座方轴执手 | 011—氧银"
       },
       "video": "assets/ph107-demo.webm",
+      "model3d": "assets/models/ph107.3mf",
+      "modelBinary": "assets/models/ph107-webmesh.bin",
       "subcategory": {
         "en": "Spindle Handle",
         "zh": "有基座方轴执手",
